@@ -7,7 +7,7 @@ homepage = "https://github.com/rust-netlink/netlink-packet-generic"
 repository = "https://github.com/rust-netlink/netlink-packet-generic"
 keywords = ["netlink", "linux"]
 license = "MIT"
-readme = "../README.md"
+readme = "README.md"
 description = "generic netlink packet types"
 
 [dependencies]
