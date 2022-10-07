@@ -4,7 +4,8 @@
 //!
 //! The `[GenlMessage]` provides a generic netlink family message which is
 //! sub-protocol independant.
-//! You can wrap your message into the type, then it can be used in `netlink-proto` crate.
+//! You can wrap your message into the type, then it can be used in
+//! `netlink-proto` crate.
 //!
 //! # Implementing a generic netlink family
 //! A generic netlink family contains several commands, and a version number in
@@ -27,10 +28,11 @@
 //! To achieve this, you should implement [`netlink_packet_utils::Emitable`]
 //! trait for the payload type.
 //!
-//! For deserialization, [`netlink_packet_utils::ParseableParametrized<[u8], GenlHeader>`](netlink_packet_utils::ParseableParametrized)
-//! trait should be implemented. As mention above, to provide more scalability,
-//! we use the simplest buffer type: `[u8]` here. You can turn it into other
-//! buffer type easily during deserializing.
+//! For deserialization, [`netlink_packet_utils::ParseableParametrized<[u8],
+//! GenlHeader>`](netlink_packet_utils::ParseableParametrized) trait should be
+//! implemented. As mention above, to provide more scalability, we use the
+//! simplest buffer type: `[u8]` here. You can turn it into other buffer type
+//! easily during deserializing.
 //!
 //! ## `GenlFamily` trait
 //! The trait is aim to provide some necessary informations in order to build
@@ -49,11 +51,13 @@
 //!
 //! ### `command()`
 //! This method tells the generic netlink command id of the packet
-//! The return value is used to fill the `cmd` field in the generic netlink header.
+//! The return value is used to fill the `cmd` field in the generic netlink
+//! header.
 //!
 //! ### `version()`
 //! This method return the family version of the payload.
-//! The return value is used to fill the `version` field in the generic netlink header.
+//! The return value is used to fill the `version` field in the generic netlink
+//! header.
 //!
 //! ## Family Header
 //! Few family would use a family specific message header. For simplification
