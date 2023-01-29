@@ -1,0 +1,10 @@
+# Changelog
+## [0.3.2] - 2023-01-29
+### Breaking changes
+ - N/A
+
+### New features
+ - N/A
+
+### Bug fixes
+ - Use latest rust-netlink crates. (fc3dc0c)
