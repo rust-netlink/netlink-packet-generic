@@ -75,8 +75,7 @@ impl TryFrom<u8> for GenlCtrlCmd {
             CTRL_CMD_GETPOLICY => GetPolicy,
             cmd => {
                 return Err(DecodeError::from(format!(
-                    "Unknown control command: {}",
-                    cmd
+                    "Unknown control command: {cmd}"
                 )))
             }
         })
@@ -121,7 +120,10 @@ impl Emitable for GenlCtrl {
 }
 
 impl ParseableParametrized<[u8], GenlHeader> for GenlCtrl {
-    fn parse_with_param(buf: &[u8], header: GenlHeader) -> Result<Self, DecodeError> {
+    fn parse_with_param(
+        buf: &[u8],
+        header: GenlHeader,
+    ) -> Result<Self, DecodeError> {
         Ok(Self {
             cmd: header.cmd.try_into()?,
             nlas: parse_ctrlnlas(buf)?,

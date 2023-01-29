@@ -82,17 +82,25 @@ impl Nla for OppolicyIndexAttr {
     }
 }
 
-impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>> for OppolicyIndexAttr {
+impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
+    for OppolicyIndexAttr
+{
     fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {
-            CTRL_ATTR_POLICY_DO => {
-                Self::Do(parse_u32(payload).context("invalid CTRL_ATTR_POLICY_DO value")?)
+            CTRL_ATTR_POLICY_DO => Self::Do(
+                parse_u32(payload)
+                    .context("invalid CTRL_ATTR_POLICY_DO value")?,
+            ),
+            CTRL_ATTR_POLICY_DUMP => Self::Dump(
+                parse_u32(payload)
+                    .context("invalid CTRL_ATTR_POLICY_DUMP value")?,
+            ),
+            kind => {
+                return Err(DecodeError::from(format!(
+                    "Unknown NLA type: {kind}"
+                )))
             }
-            CTRL_ATTR_POLICY_DUMP => {
-                Self::Dump(parse_u32(payload).context("invalid CTRL_ATTR_POLICY_DUMP value")?)
-            }
-            kind => return Err(DecodeError::from(format!("Unknown NLA type: {}", kind))),
         })
     }
 }

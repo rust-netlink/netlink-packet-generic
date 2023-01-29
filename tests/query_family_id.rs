@@ -29,7 +29,8 @@ fn query_family_id() {
     socket.send(&txbuf, 0).unwrap();
 
     let (rxbuf, _addr) = socket.recv_from_full().unwrap();
-    let rx_packet = <NetlinkMessage<GenlMessage<GenlCtrl>>>::deserialize(&rxbuf).unwrap();
+    let rx_packet =
+        <NetlinkMessage<GenlMessage<GenlCtrl>>>::deserialize(&rxbuf).unwrap();
 
     if let NetlinkPayload::InnerMessage(genlmsg) = rx_packet.payload {
         if GenlCtrlCmd::NewFamily == genlmsg.payload.cmd {

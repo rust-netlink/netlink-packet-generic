@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 
-use netlink_packet_core::{NetlinkMessage, NetlinkPayload, NLM_F_DUMP, NLM_F_REQUEST};
+use netlink_packet_core::{
+    NetlinkMessage, NetlinkPayload, NLM_F_DUMP, NLM_F_REQUEST,
+};
 use netlink_packet_generic::{
     ctrl::{nlas::GenlCtrlAttrs, GenlCtrl, GenlCtrlCmd},
     GenlMessage,
@@ -35,7 +37,8 @@ fn main() {
         loop {
             let buf = &rxbuf[offset..];
             // Parse the message
-            let msg = <NetlinkMessage<GenlMessage<GenlCtrl>>>::deserialize(buf).unwrap();
+            let msg = <NetlinkMessage<GenlMessage<GenlCtrl>>>::deserialize(buf)
+                .unwrap();
 
             match msg.payload {
                 NetlinkPayload::Done => break 'outer,
@@ -45,7 +48,7 @@ fn main() {
                     }
                 }
                 NetlinkPayload::Error(err) => {
-                    eprintln!("Received a netlink error message: {:?}", err);
+                    eprintln!("Received a netlink error message: {err:?}");
                     return;
                 }
                 _ => {}
@@ -103,11 +106,8 @@ fn print_entry(entry: Vec<GenlCtrlAttrs>) {
         .expect("Cannot find HdrSize attribute");
 
     if hdrsize == 0 {
-        println!("0x{:04x} {} [Version {}]", family_id, family_name, version);
+        println!("0x{family_id:04x} {family_name} [Version {version}]");
     } else {
-        println!(
-            "0x{:04x} {} [Version {}] [Header {} bytes]",
-            family_id, family_name, version, hdrsize
-        );
+        println!("0x{family_id:04x} {family_name} [Version {version}] [Header {hdrsize} bytes]");
     }
 }
