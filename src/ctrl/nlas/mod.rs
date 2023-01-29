@@ -45,7 +45,9 @@ impl Nla for GenlCtrlAttrs {
             HdrSize(v) => size_of_val(v),
             MaxAttr(v) => size_of_val(v),
             Ops(nlas) => nlas.iter().map(|op| op.as_slice().buffer_len()).sum(),
-            McastGroups(nlas) => nlas.iter().map(|op| op.as_slice().buffer_len()).sum(),
+            McastGroups(nlas) => {
+                nlas.iter().map(|op| op.as_slice().buffer_len()).sum()
+            }
             Policy(nla) => nla.buffer_len(),
             OpPolicy(nla) => nla.buffer_len(),
             Op(v) => size_of_val(v),
@@ -100,31 +102,40 @@ impl Nla for GenlCtrlAttrs {
     }
 }
 
-impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>> for GenlCtrlAttrs {
+impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
+    for GenlCtrlAttrs
+{
     fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {
-            CTRL_ATTR_FAMILY_ID => {
-                Self::FamilyId(parse_u16(payload).context("invalid CTRL_ATTR_FAMILY_ID value")?)
-            }
-            CTRL_ATTR_FAMILY_NAME => Self::FamilyName(
-                parse_string(payload).context("invalid CTRL_ATTR_FAMILY_NAME value")?,
+            CTRL_ATTR_FAMILY_ID => Self::FamilyId(
+                parse_u16(payload)
+                    .context("invalid CTRL_ATTR_FAMILY_ID value")?,
             ),
-            CTRL_ATTR_VERSION => {
-                Self::Version(parse_u32(payload).context("invalid CTRL_ATTR_VERSION value")?)
-            }
-            CTRL_ATTR_HDRSIZE => {
-                Self::HdrSize(parse_u32(payload).context("invalid CTRL_ATTR_HDRSIZE value")?)
-            }
-            CTRL_ATTR_MAXATTR => {
-                Self::MaxAttr(parse_u32(payload).context("invalid CTRL_ATTR_MAXATTR value")?)
-            }
+            CTRL_ATTR_FAMILY_NAME => Self::FamilyName(
+                parse_string(payload)
+                    .context("invalid CTRL_ATTR_FAMILY_NAME value")?,
+            ),
+            CTRL_ATTR_VERSION => Self::Version(
+                parse_u32(payload)
+                    .context("invalid CTRL_ATTR_VERSION value")?,
+            ),
+            CTRL_ATTR_HDRSIZE => Self::HdrSize(
+                parse_u32(payload)
+                    .context("invalid CTRL_ATTR_HDRSIZE value")?,
+            ),
+            CTRL_ATTR_MAXATTR => Self::MaxAttr(
+                parse_u32(payload)
+                    .context("invalid CTRL_ATTR_MAXATTR value")?,
+            ),
             CTRL_ATTR_OPS => {
                 let ops = NlasIterator::new(payload)
                     .map(|nlas| {
                         nlas.and_then(|nlas| {
                             NlasIterator::new(nlas.value())
-                                .map(|nla| nla.and_then(|nla| OpAttrs::parse(&nla)))
+                                .map(|nla| {
+                                    nla.and_then(|nla| OpAttrs::parse(&nla))
+                                })
                                 .collect::<Result<Vec<_>, _>>()
                         })
                     })
@@ -138,7 +149,11 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>> for GenlCtrlAttrs 
                     .map(|nlas| {
                         nlas.and_then(|nlas| {
                             NlasIterator::new(nlas.value())
-                                .map(|nla| nla.and_then(|nla| McastGrpAttrs::parse(&nla)))
+                                .map(|nla| {
+                                    nla.and_then(|nla| {
+                                        McastGrpAttrs::parse(&nla)
+                                    })
+                                })
                                 .collect::<Result<Vec<_>, _>>()
                         })
                     })
@@ -156,7 +171,11 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>> for GenlCtrlAttrs 
                     .context("failed to parse CTRL_ATTR_OP_POLICY")?,
             ),
             CTRL_ATTR_OP => Self::Op(parse_u32(payload)?),
-            kind => return Err(DecodeError::from(format!("Unknown NLA type: {}", kind))),
+            kind => {
+                return Err(DecodeError::from(format!(
+                    "Unknown NLA type: {kind}"
+                )))
+            }
         })
     }
 }

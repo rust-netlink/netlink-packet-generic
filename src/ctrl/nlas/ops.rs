@@ -47,13 +47,18 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>> for OpAttrs {
     fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {
-            CTRL_ATTR_OP_ID => {
-                Self::Id(parse_u32(payload).context("invalid CTRL_ATTR_OP_ID value")?)
+            CTRL_ATTR_OP_ID => Self::Id(
+                parse_u32(payload).context("invalid CTRL_ATTR_OP_ID value")?,
+            ),
+            CTRL_ATTR_OP_FLAGS => Self::Flags(
+                parse_u32(payload)
+                    .context("invalid CTRL_ATTR_OP_FLAGS value")?,
+            ),
+            kind => {
+                return Err(DecodeError::from(format!(
+                    "Unknown NLA type: {kind}"
+                )))
             }
-            CTRL_ATTR_OP_FLAGS => {
-                Self::Flags(parse_u32(payload).context("invalid CTRL_ATTR_OP_FLAGS value")?)
-            }
-            kind => return Err(DecodeError::from(format!("Unknown NLA type: {}", kind))),
         })
     }
 }

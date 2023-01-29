@@ -46,17 +46,25 @@ impl Nla for McastGrpAttrs {
     }
 }
 
-impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>> for McastGrpAttrs {
+impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
+    for McastGrpAttrs
+{
     fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {
-            CTRL_ATTR_MCAST_GRP_NAME => {
-                Self::Name(parse_string(payload).context("invalid CTRL_ATTR_MCAST_GRP_NAME value")?)
+            CTRL_ATTR_MCAST_GRP_NAME => Self::Name(
+                parse_string(payload)
+                    .context("invalid CTRL_ATTR_MCAST_GRP_NAME value")?,
+            ),
+            CTRL_ATTR_MCAST_GRP_ID => Self::Id(
+                parse_u32(payload)
+                    .context("invalid CTRL_ATTR_MCAST_GRP_ID value")?,
+            ),
+            kind => {
+                return Err(DecodeError::from(format!(
+                    "Unknown NLA type: {kind}"
+                )))
             }
-            CTRL_ATTR_MCAST_GRP_ID => {
-                Self::Id(parse_u32(payload).context("invalid CTRL_ATTR_MCAST_GRP_ID value")?)
-            }
-            kind => return Err(DecodeError::from(format!("Unknown NLA type: {}", kind))),
         })
     }
 }

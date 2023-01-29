@@ -167,7 +167,10 @@ where
     F: ParseableParametrized<[u8], GenlHeader> + Debug,
 {
     type Error = DecodeError;
-    fn deserialize(header: &NetlinkHeader, payload: &[u8]) -> Result<Self, Self::Error> {
+    fn deserialize(
+        header: &NetlinkHeader,
+        payload: &[u8],
+    ) -> Result<Self, Self::Error> {
         let buffer = GenlBuffer::new_checked(payload)?;
         GenlMessage::parse_with_param(&buffer, header.message_type)
     }

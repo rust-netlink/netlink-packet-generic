@@ -78,7 +78,9 @@ impl Nla for AttributePolicyAttr {
     }
 }
 
-impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>> for AttributePolicyAttr {
+impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
+    for AttributePolicyAttr
+{
     fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         let policies = NlasIterator::new(payload)
@@ -163,45 +165,64 @@ impl Nla for NlPolicyTypeAttrs {
     }
 }
 
-impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>> for NlPolicyTypeAttrs {
+impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
+    for NlPolicyTypeAttrs
+{
     fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {
             NL_POLICY_TYPE_ATTR_TYPE => {
-                let value = parse_u32(payload).context("invalid NL_POLICY_TYPE_ATTR_TYPE value")?;
+                let value = parse_u32(payload)
+                    .context("invalid NL_POLICY_TYPE_ATTR_TYPE value")?;
                 Self::Type(NlaType::try_from(value)?)
             }
             NL_POLICY_TYPE_ATTR_MIN_VALUE_S => Self::MinValueSigned(
-                parse_i64(payload).context("invalid NL_POLICY_TYPE_ATTR_MIN_VALUE_S value")?,
+                parse_i64(payload)
+                    .context("invalid NL_POLICY_TYPE_ATTR_MIN_VALUE_S value")?,
             ),
             NL_POLICY_TYPE_ATTR_MAX_VALUE_S => Self::MaxValueSigned(
-                parse_i64(payload).context("invalid NL_POLICY_TYPE_ATTR_MAX_VALUE_S value")?,
+                parse_i64(payload)
+                    .context("invalid NL_POLICY_TYPE_ATTR_MAX_VALUE_S value")?,
             ),
             NL_POLICY_TYPE_ATTR_MIN_VALUE_U => Self::MinValueUnsigned(
-                parse_u64(payload).context("invalid NL_POLICY_TYPE_ATTR_MIN_VALUE_U value")?,
+                parse_u64(payload)
+                    .context("invalid NL_POLICY_TYPE_ATTR_MIN_VALUE_U value")?,
             ),
             NL_POLICY_TYPE_ATTR_MAX_VALUE_U => Self::MaxValueUnsigned(
-                parse_u64(payload).context("invalid NL_POLICY_TYPE_ATTR_MAX_VALUE_U value")?,
+                parse_u64(payload)
+                    .context("invalid NL_POLICY_TYPE_ATTR_MAX_VALUE_U value")?,
             ),
             NL_POLICY_TYPE_ATTR_MIN_LENGTH => Self::MinLength(
-                parse_u32(payload).context("invalid NL_POLICY_TYPE_ATTR_MIN_LENGTH value")?,
+                parse_u32(payload)
+                    .context("invalid NL_POLICY_TYPE_ATTR_MIN_LENGTH value")?,
             ),
             NL_POLICY_TYPE_ATTR_MAX_LENGTH => Self::MaxLength(
-                parse_u32(payload).context("invalid NL_POLICY_TYPE_ATTR_MAX_LENGTH value")?,
+                parse_u32(payload)
+                    .context("invalid NL_POLICY_TYPE_ATTR_MAX_LENGTH value")?,
             ),
             NL_POLICY_TYPE_ATTR_POLICY_IDX => Self::PolicyIdx(
-                parse_u32(payload).context("invalid NL_POLICY_TYPE_ATTR_POLICY_IDX value")?,
+                parse_u32(payload)
+                    .context("invalid NL_POLICY_TYPE_ATTR_POLICY_IDX value")?,
             ),
-            NL_POLICY_TYPE_ATTR_POLICY_MAXTYPE => Self::PolicyMaxType(
-                parse_u32(payload).context("invalid NL_POLICY_TYPE_ATTR_POLICY_MAXTYPE value")?,
-            ),
-            NL_POLICY_TYPE_ATTR_BITFIELD32_MASK => Self::Bitfield32Mask(
-                parse_u32(payload).context("invalid NL_POLICY_TYPE_ATTR_BITFIELD32_MASK value")?,
-            ),
-            NL_POLICY_TYPE_ATTR_MASK => {
-                Self::Mask(parse_u64(payload).context("invalid NL_POLICY_TYPE_ATTR_MASK value")?)
+            NL_POLICY_TYPE_ATTR_POLICY_MAXTYPE => {
+                Self::PolicyMaxType(parse_u32(payload).context(
+                    "invalid NL_POLICY_TYPE_ATTR_POLICY_MAXTYPE value",
+                )?)
             }
-            kind => return Err(DecodeError::from(format!("Unknown NLA type: {}", kind))),
+            NL_POLICY_TYPE_ATTR_BITFIELD32_MASK => {
+                Self::Bitfield32Mask(parse_u32(payload).context(
+                    "invalid NL_POLICY_TYPE_ATTR_BITFIELD32_MASK value",
+                )?)
+            }
+            NL_POLICY_TYPE_ATTR_MASK => Self::Mask(
+                parse_u64(payload)
+                    .context("invalid NL_POLICY_TYPE_ATTR_MASK value")?,
+            ),
+            kind => {
+                return Err(DecodeError::from(format!(
+                    "Unknown NLA type: {kind}"
+                )))
+            }
         })
     }
 }
@@ -267,7 +288,11 @@ impl TryFrom<u32> for NlaType {
             NL_ATTR_TYPE_NESTED => NlaType::Nested,
             NL_ATTR_TYPE_NESTED_ARRAY => NlaType::NestedArray,
             NL_ATTR_TYPE_BITFIELD32 => NlaType::Bitfield32,
-            _ => return Err(DecodeError::from(format!("invalid NLA type: {}", value))),
+            _ => {
+                return Err(DecodeError::from(format!(
+                    "invalid NLA type: {value}"
+                )))
+            }
         })
     }
 }
@@ -275,7 +300,7 @@ impl TryFrom<u32> for NlaType {
 // FIXME: Add this into netlink_packet_utils::parser
 fn parse_i64(payload: &[u8]) -> Result<i64, DecodeError> {
     if payload.len() != size_of::<i64>() {
-        return Err(format!("invalid i64: {:?}", payload).into());
+        return Err(format!("invalid i64: {payload:?}").into());
     }
     Ok(NativeEndian::read_i64(payload))
 }
