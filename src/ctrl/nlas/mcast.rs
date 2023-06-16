@@ -4,12 +4,41 @@ use crate::constants::*;
 use anyhow::Context;
 use byteorder::{ByteOrder, NativeEndian};
 use netlink_packet_utils::{
-    nla::{Nla, NlaBuffer},
+    nla::{Nla, NlaBuffer, NlasIterator, NLA_F_NESTED},
     parsers::*,
     traits::*,
     DecodeError,
 };
 use std::mem::size_of_val;
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct McastGroup {
+    pub nlas: Vec<McastGrpAttrs>,
+}
+
+impl Nla for McastGroup {
+    fn value_len(&self) -> usize {
+        self.nlas.iter().map(|nla| nla.buffer_len()).sum()
+    }
+
+    fn kind(&self) -> u16 {
+        NLA_F_NESTED
+    }
+
+    fn emit_value(&self, buffer: &mut [u8]) {
+        self.nlas.as_slice().emit(buffer);
+    }
+}
+
+impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>> for McastGroup {
+    fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
+        let payload = buf.value();
+        let nlas = NlasIterator::new(payload)
+            .map(|nla| nla.and_then(|nla| McastGrpAttrs::parse(&nla)))
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(Self { nlas })
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum McastGrpAttrs {
