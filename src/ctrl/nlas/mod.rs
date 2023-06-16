@@ -4,7 +4,7 @@ use crate::constants::*;
 use anyhow::Context;
 use byteorder::{ByteOrder, NativeEndian};
 use netlink_packet_utils::{
-    nla::{Nla, NlaBuffer, NlasIterator},
+    nla::{Nla, NlaBuffer, NlasIterator, NLA_F_NESTED, NLA_HEADER_SIZE},
     parsers::*,
     traits::*,
     DecodeError,
@@ -45,9 +45,10 @@ impl Nla for GenlCtrlAttrs {
             HdrSize(v) => size_of_val(v),
             MaxAttr(v) => size_of_val(v),
             Ops(nlas) => nlas.iter().map(|op| op.as_slice().buffer_len()).sum(),
-            McastGroups(nlas) => {
-                nlas.iter().map(|op| op.as_slice().buffer_len()).sum()
-            }
+            McastGroups(nlas) => nlas
+                .iter()
+                .map(|op| op.as_slice().buffer_len() + NLA_HEADER_SIZE)
+                .sum(),
             Policy(nla) => nla.buffer_len(),
             OpPolicy(nla) => nla.buffer_len(),
             Op(v) => size_of_val(v),
@@ -91,6 +92,12 @@ impl Nla for GenlCtrlAttrs {
             McastGroups(nlas) => {
                 let mut len = 0;
                 for op in nlas {
+                    let mut nla_buffer = NlaBuffer::new(&mut buffer[len..]);
+                    nla_buffer.set_kind(NLA_F_NESTED);
+                    nla_buffer.set_length(
+                        (op.as_slice().buffer_len() + NLA_HEADER_SIZE) as u16,
+                    );
+                    len += NLA_HEADER_SIZE;
                     op.as_slice().emit(&mut buffer[len..]);
                     len += op.as_slice().buffer_len();
                 }
@@ -177,5 +184,26 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                 )))
             }
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn mcast_groups_encode_and_parse_roundtrip() {
+        let mcast_attr = GenlCtrlAttrs::McastGroups(vec![vec![
+            McastGrpAttrs::Id(1),
+            McastGrpAttrs::Name("group1".to_string()),
+        ]]);
+        let mut buf = vec![0u8; mcast_attr.buffer_len()];
+        mcast_attr.emit(&mut buf);
+
+        let nla_buffer = NlaBuffer::new_checked(&buf[..])
+            .expect("Failed to create NlaBuffer");
+        let result_attr = GenlCtrlAttrs::parse(&nla_buffer)
+            .expect("Failed to parse encoded McastGroups");
+        assert_eq!(mcast_attr, result_attr);
     }
 }
