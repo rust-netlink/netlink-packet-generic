@@ -44,7 +44,7 @@ pub struct Op {
 
 impl Nla for Op {
     fn value_len(&self) -> usize {
-        self.nlas.iter().map(|nla| nla.buffer_len()).sum()
+        self.nlas.as_slice().buffer_len()
     }
 
     fn kind(&self) -> u16 {
