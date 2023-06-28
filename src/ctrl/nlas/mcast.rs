@@ -4,39 +4,56 @@ use crate::constants::*;
 use anyhow::Context;
 use byteorder::{ByteOrder, NativeEndian};
 use netlink_packet_utils::{
-    nla::{Nla, NlaBuffer, NlasIterator, NLA_F_NESTED},
+    nla::{Nla, NlaBuffer},
     parsers::*,
     traits::*,
     DecodeError,
 };
-use std::mem::size_of_val;
+use std::{mem::size_of_val, ops::Deref};
+
+pub struct McastGroupList(Vec<McastGroup>);
+
+impl Deref for McastGroupList {
+    type Target = Vec<McastGroup>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl From<&Vec<Vec<McastGrpAttrs>>> for McastGroupList {
+    fn from(groups: &Vec<Vec<McastGrpAttrs>>) -> Self {
+        Self(
+            groups
+                .iter()
+                .cloned()
+                .enumerate()
+                .map(|(index, nlas)| McastGroup {
+                    index: index as u16,
+                    nlas,
+                })
+                .collect(),
+        )
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct McastGroup {
+    pub index: u16,
     pub nlas: Vec<McastGrpAttrs>,
 }
 
 impl Nla for McastGroup {
     fn value_len(&self) -> usize {
-        self.nlas.iter().map(|nla| nla.buffer_len()).sum()
+        self.nlas.as_slice().buffer_len()
     }
 
     fn kind(&self) -> u16 {
-        NLA_F_NESTED
+        self.index + 1
     }
 
     fn emit_value(&self, buffer: &mut [u8]) {
         self.nlas.as_slice().emit(buffer);
-    }
-}
-
-impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>> for McastGroup {
-    fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
-        let payload = buf.value();
-        let nlas = NlasIterator::new(payload)
-            .map(|nla| nla.and_then(|nla| McastGrpAttrs::parse(&nla)))
-            .collect::<Result<Vec<_>, _>>()?;
-        Ok(Self { nlas })
     }
 }
 

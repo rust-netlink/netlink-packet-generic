@@ -28,8 +28,8 @@ pub enum GenlCtrlAttrs {
     Version(u32),
     HdrSize(u32),
     MaxAttr(u32),
-    Ops(Vec<Op>),
-    McastGroups(Vec<McastGroup>),
+    Ops(Vec<Vec<OpAttrs>>),
+    McastGroups(Vec<Vec<McastGrpAttrs>>),
     Policy(PolicyAttr),
     OpPolicy(OppolicyAttr),
     Op(u32),
@@ -44,8 +44,10 @@ impl Nla for GenlCtrlAttrs {
             Version(v) => size_of_val(v),
             HdrSize(v) => size_of_val(v),
             MaxAttr(v) => size_of_val(v),
-            Ops(nlas) => nlas.iter().map(|op| op.buffer_len()).sum(),
-            McastGroups(nlas) => nlas.iter().map(|op| op.buffer_len()).sum(),
+            Ops(nlas) => OpList::from(nlas).as_slice().buffer_len(),
+            McastGroups(nlas) => {
+                McastGroupList::from(nlas).as_slice().buffer_len()
+            }
             Policy(nla) => nla.buffer_len(),
             OpPolicy(nla) => nla.buffer_len(),
             Op(v) => size_of_val(v),
@@ -80,10 +82,10 @@ impl Nla for GenlCtrlAttrs {
             HdrSize(v) => NativeEndian::write_u32(buffer, *v),
             MaxAttr(v) => NativeEndian::write_u32(buffer, *v),
             Ops(nlas) => {
-                nlas.as_slice().emit(buffer);
+                OpList::from(nlas).as_slice().emit(buffer);
             }
             McastGroups(nlas) => {
-                nlas.as_slice().emit(buffer);
+                McastGroupList::from(nlas).as_slice().emit(buffer);
             }
             Policy(nla) => nla.emit_value(buffer),
             OpPolicy(nla) => nla.emit_value(buffer),
@@ -120,17 +122,34 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
             ),
             CTRL_ATTR_OPS => {
                 let ops = NlasIterator::new(payload)
-                    .map(|nlas| nlas.and_then(|nla| Op::parse(&nla)))
-                    .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse CTRL_ATTR_OPS")?;
+                    .map(|nlas| {
+                        nlas.and_then(|nlas| {
+                            NlasIterator::new(nlas.value())
+                                .map(|nla| {
+                                    nla.and_then(|nla| OpAttrs::parse(&nla))
+                                })
+                                .collect::<Result<Vec<_>, _>>()
+                        })
+                    })
+                    .collect::<Result<Vec<Vec<_>>, _>>()
+                    .context("failed to parse CTRL_ATTR_MCAST_GROUPS")?;
                 Self::Ops(ops)
             }
             CTRL_ATTR_MCAST_GROUPS => {
                 let groups = NlasIterator::new(payload)
-                    .map(|nlas| nlas.and_then(|nla| McastGroup::parse(&nla)))
-                    .collect::<Result<Vec<_>, _>>()
+                    .map(|nlas| {
+                        nlas.and_then(|nlas| {
+                            NlasIterator::new(nlas.value())
+                                .map(|nla| {
+                                    nla.and_then(|nla| {
+                                        McastGrpAttrs::parse(&nla)
+                                    })
+                                })
+                                .collect::<Result<Vec<_>, _>>()
+                        })
+                    })
+                    .collect::<Result<Vec<Vec<_>>, _>>()
                     .context("failed to parse CTRL_ATTR_MCAST_GROUPS")?;
-
                 Self::McastGroups(groups)
             }
             CTRL_ATTR_POLICY => Self::Policy(
@@ -161,7 +180,7 @@ mod tests {
             24, 0, // Netlink header length
             7, 0, // Netlink header kind (Mcast groups)
             20, 0, // Mcast group nested NLA length
-            0, 0, // Mcast group kind
+            1, 0, // Mcast group kind
             8, 0, // Id length
             2, 0, // Id kind
             1, 0, 0, 0, // Id
@@ -173,39 +192,51 @@ mod tests {
             .expect("Failed to create NlaBuffer");
         let result_attr = GenlCtrlAttrs::parse(&nla_buffer)
             .expect("Failed to parse encoded McastGroups");
-        let expected_attr = GenlCtrlAttrs::McastGroups(vec![McastGroup {
-            nlas: vec![
-                McastGrpAttrs::Id(1),
-                McastGrpAttrs::Name("test".to_string()),
-            ],
-        }]);
+        let expected_attr = GenlCtrlAttrs::McastGroups(vec![vec![
+            McastGrpAttrs::Id(1),
+            McastGrpAttrs::Name("test".to_string()),
+        ]]);
         assert_eq!(expected_attr, result_attr);
     }
 
     #[test]
-    fn mcast_groups_encode_and_parse_roundtrip() {
+    fn mcast_groups_emit() {
         let mcast_attr = GenlCtrlAttrs::McastGroups(vec![
-            McastGroup {
-                nlas: vec![
-                    McastGrpAttrs::Id(1),
-                    McastGrpAttrs::Name("group1".to_string()),
-                ],
-            },
-            McastGroup {
-                nlas: vec![
-                    McastGrpAttrs::Id(2),
-                    McastGrpAttrs::Name("group2".to_string()),
-                ],
-            },
+            vec![
+                McastGrpAttrs::Id(7),
+                McastGrpAttrs::Name("group1".to_string()),
+            ],
+            vec![
+                McastGrpAttrs::Id(8),
+                McastGrpAttrs::Name("group2".to_string()),
+            ],
         ]);
-        let mut buf = vec![0u8; mcast_attr.buffer_len()];
+        let expected_bytes: [u8; 52] = [
+            52, 0, // Netlink header length
+            7, 0, // Netlink header kind (Mcast groups)
+            24, 0, // Mcast group nested NLA length
+            1, 0, // Mcast group kind (index 1)
+            8, 0, // Id length
+            2, 0, // Id kind
+            7, 0, 0, 0, // Id
+            11, 0, // Name length
+            1, 0, // Name kind
+            b'g', b'r', b'o', b'u', b'p', b'1', 0, // Name
+            0, // mcast group padding
+            24, 0, // Mcast group nested NLA length
+            2, 0, // Mcast group kind (index 2)
+            8, 0, // Id length
+            2, 0, // Id kind
+            8, 0, 0, 0, // Id
+            11, 0, // Name length
+            1, 0, // Name kind
+            b'g', b'r', b'o', b'u', b'p', b'2', 0, // Name
+            0, // padding
+        ];
+        let mut buf = vec![0u8; 100];
         mcast_attr.emit(&mut buf);
 
-        let nla_buffer = NlaBuffer::new_checked(&buf[..])
-            .expect("Failed to create NlaBuffer");
-        let result_attr = GenlCtrlAttrs::parse(&nla_buffer)
-            .expect("Failed to parse encoded McastGroups");
-        assert_eq!(mcast_attr, result_attr);
+        assert_eq!(&expected_bytes[..], &buf[..expected_bytes.len()]);
     }
 
     #[test]
@@ -226,29 +257,40 @@ mod tests {
             .expect("Failed to create NlaBuffer");
         let result_attr = GenlCtrlAttrs::parse(&nla_buffer)
             .expect("Failed to parse encoded McastGroups");
-        let expected_attr = GenlCtrlAttrs::Ops(vec![Op {
-            nlas: vec![OpAttrs::Id(1), OpAttrs::Flags(123)],
-        }]);
+        let expected_attr =
+            GenlCtrlAttrs::Ops(vec![vec![OpAttrs::Id(1), OpAttrs::Flags(123)]]);
         assert_eq!(expected_attr, result_attr);
     }
 
     #[test]
-    fn ops_encode_and_parse_roundtrip() {
-        let op_attr = GenlCtrlAttrs::Ops(vec![
-            Op {
-                nlas: vec![OpAttrs::Id(1), OpAttrs::Flags(123)],
-            },
-            Op {
-                nlas: vec![OpAttrs::Id(2), OpAttrs::Flags(321)],
-            },
+    fn ops_emit() {
+        let ops = GenlCtrlAttrs::Ops(vec![
+            vec![OpAttrs::Id(1), OpAttrs::Flags(11)],
+            vec![OpAttrs::Id(3), OpAttrs::Flags(33)],
         ]);
-        let mut buf = vec![0u8; op_attr.buffer_len()];
-        op_attr.emit(&mut buf);
+        let expected_bytes: [u8; 44] = [
+            44, 0, // Netlink header length
+            6, 0, // Netlink header kind (Ops)
+            20, 0, // Op nested NLA length
+            1, 0, // Op kind
+            8, 0, // Id length
+            1, 0, // Id kind
+            1, 0, 0, 0, // Id
+            8, 0, // Flags length
+            2, 0, // Flags kind
+            11, 0, 0, 0, // Flags
+            20, 0, // Op nested NLA length
+            2, 0, // Op kind
+            8, 0, // Id length
+            1, 0, // Id kind
+            3, 0, 0, 0, // Id
+            8, 0, // Flags length
+            2, 0, // Flags kind
+            33, 0, 0, 0, // Flags
+        ];
+        let mut buf = vec![0u8; 100];
+        ops.emit(&mut buf);
 
-        let nla_buffer = NlaBuffer::new_checked(&buf[..])
-            .expect("Failed to create NlaBuffer");
-        let result_attr = GenlCtrlAttrs::parse(&nla_buffer)
-            .expect("Failed to parse encoded McastGroups");
-        assert_eq!(op_attr, result_attr);
+        assert_eq!(&expected_bytes[..], &buf[..expected_bytes.len()]);
     }
 }
