@@ -4,15 +4,41 @@ use crate::constants::*;
 use anyhow::Context;
 use byteorder::{ByteOrder, NativeEndian};
 use netlink_packet_utils::{
-    nla::{Nla, NlaBuffer, NlasIterator, NLA_F_NESTED},
+    nla::{Nla, NlaBuffer},
     parsers::*,
     traits::*,
     DecodeError,
 };
-use std::mem::size_of_val;
+use std::{mem::size_of_val, ops::Deref};
+
+pub struct OpList(Vec<Op>);
+
+impl Deref for OpList {
+    type Target = Vec<Op>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl From<&Vec<Vec<OpAttrs>>> for OpList {
+    fn from(ops: &Vec<Vec<OpAttrs>>) -> Self {
+        Self(
+            ops.iter()
+                .cloned()
+                .enumerate()
+                .map(|(index, nlas)| Op {
+                    index: index as u16,
+                    nlas,
+                })
+                .collect(),
+        )
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Op {
+    pub index: u16,
     pub nlas: Vec<OpAttrs>,
 }
 
@@ -22,21 +48,11 @@ impl Nla for Op {
     }
 
     fn kind(&self) -> u16 {
-        NLA_F_NESTED
+        self.index + 1
     }
 
     fn emit_value(&self, buffer: &mut [u8]) {
         self.nlas.as_slice().emit(buffer);
-    }
-}
-
-impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>> for Op {
-    fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
-        let payload = buf.value();
-        let nlas = NlasIterator::new(payload)
-            .map(|nla| nla.and_then(|nla| OpAttrs::parse(&nla)))
-            .collect::<Result<Vec<_>, _>>()?;
-        Ok(Self { nlas })
     }
 }
 
