@@ -132,7 +132,7 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                         })
                     })
                     .collect::<Result<Vec<Vec<_>>, _>>()
-                    .context("failed to parse CTRL_ATTR_MCAST_GROUPS")?;
+                    .context("failed to parse CTRL_ATTR_OPS")?;
                 Self::Ops(ops)
             }
             CTRL_ATTR_MCAST_GROUPS => {
