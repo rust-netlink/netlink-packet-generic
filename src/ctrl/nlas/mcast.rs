@@ -11,7 +11,7 @@ use netlink_packet_utils::{
 };
 use std::{mem::size_of_val, ops::Deref};
 
-pub struct McastGroupList(Vec<McastGroup>);
+pub(crate) struct McastGroupList(Vec<McastGroup>);
 
 impl Deref for McastGroupList {
     type Target = Vec<McastGroup>;
