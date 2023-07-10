@@ -1,4 +1,15 @@
 # Changelog
+## [0.3.3] - 2023-07-09
+### Breaking changes
+ - N/A
+
+### New features
+ - N/A
+
+### Bug fixes
+ - Removed depdency on libc. (13fc4cb)
+ - Fix the incorrect emit of mcast and ops. (31fcccd)
+
 ## [0.3.2] - 2023-01-29
 ### Breaking changes
  - N/A
