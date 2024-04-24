@@ -97,6 +97,7 @@ impl Nla for GenlCtrlAttrs {
 impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
     for GenlCtrlAttrs
 {
+    type Error = DecodeError;
     fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {
@@ -123,10 +124,10 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
             CTRL_ATTR_OPS => {
                 let ops = NlasIterator::new(payload)
                     .map(|nlas| {
-                        nlas.and_then(|nlas| {
+                        nlas.map_err(|err|DecodeError::from(err)).and_then(|nlas| {
                             NlasIterator::new(nlas.value())
                                 .map(|nla| {
-                                    nla.and_then(|nla| OpAttrs::parse(&nla))
+                                    nla.map_err(|err|DecodeError::from(err)).and_then(|nla| OpAttrs::parse(&nla))
                                 })
                                 .collect::<Result<Vec<_>, _>>()
                         })
@@ -138,10 +139,10 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
             CTRL_ATTR_MCAST_GROUPS => {
                 let groups = NlasIterator::new(payload)
                     .map(|nlas| {
-                        nlas.and_then(|nlas| {
+                        nlas.map_err(|err|DecodeError::from(err)).and_then(|nlas| {
                             NlasIterator::new(nlas.value())
                                 .map(|nla| {
-                                    nla.and_then(|nla| {
+                                    nla.map_err(|err|DecodeError::from(err)).and_then(|nla| {
                                         McastGrpAttrs::parse(&nla)
                                     })
                                 })

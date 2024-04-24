@@ -24,6 +24,7 @@ impl Emitable for GenlHeader {
 }
 
 impl<T: AsRef<[u8]>> Parseable<GenlBuffer<T>> for GenlHeader {
+    type Error = DecodeError;
     fn parse(buf: &GenlBuffer<T>) -> Result<Self, DecodeError> {
         Ok(Self {
             cmd: buf.cmd(),

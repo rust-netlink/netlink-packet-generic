@@ -120,6 +120,7 @@ impl Emitable for GenlCtrl {
 }
 
 impl ParseableParametrized<[u8], GenlHeader> for GenlCtrl {
+    type Error = DecodeError;
     fn parse_with_param(
         buf: &[u8],
         header: GenlHeader,
@@ -133,7 +134,7 @@ impl ParseableParametrized<[u8], GenlHeader> for GenlCtrl {
 
 fn parse_ctrlnlas(buf: &[u8]) -> Result<Vec<GenlCtrlAttrs>, DecodeError> {
     let nlas = NlasIterator::new(buf)
-        .map(|nla| nla.and_then(|nla| GenlCtrlAttrs::parse(&nla)))
+        .map(|nla| nla.map_err(|err|DecodeError::Nla(err)).and_then(|nla| GenlCtrlAttrs::parse(&nla)))
         .collect::<Result<Vec<_>, _>>()
         .context("failed to parse control message attributes")?;
 

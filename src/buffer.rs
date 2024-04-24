@@ -15,11 +15,11 @@ impl<F> ParseableParametrized<[u8], u16> for GenlMessage<F>
 where
     F: ParseableParametrized<[u8], GenlHeader> + Debug,
 {
+    type Error = DecodeError;
     fn parse_with_param(
         buf: &[u8],
         message_type: u16,
     ) -> Result<Self, DecodeError> {
-        let buf = GenlBuffer::new_checked(buf)?;
         Self::parse_with_param(&buf, message_type)
     }
 }
@@ -28,7 +28,9 @@ impl<'a, F, T> ParseableParametrized<GenlBuffer<&'a T>, u16> for GenlMessage<F>
 where
     F: ParseableParametrized<[u8], GenlHeader> + Debug,
     T: AsRef<[u8]> + ?Sized,
+    F::Error: Into<DecodeError>,
 {
+    type Error = DecodeError;
     fn parse_with_param(
         buf: &GenlBuffer<&'a T>,
         message_type: u16,
@@ -37,7 +39,7 @@ where
         let payload_buf = buf.payload();
         Ok(GenlMessage::new(
             header,
-            F::parse_with_param(payload_buf, header)?,
+            F::parse_with_param(payload_buf, header).map_err(|err|err.into())?,
             message_type,
         ))
     }
