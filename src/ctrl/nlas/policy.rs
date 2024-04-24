@@ -41,6 +41,7 @@ impl Nla for PolicyAttr {
 }
 
 impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>> for PolicyAttr {
+    type Error = DecodeError;
     fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
         let payload = buf.value();
 
@@ -81,10 +82,11 @@ impl Nla for AttributePolicyAttr {
 impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
     for AttributePolicyAttr
 {
+    type Error = DecodeError;
     fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         let policies = NlasIterator::new(payload)
-            .map(|nla| nla.and_then(|nla| NlPolicyTypeAttrs::parse(&nla)))
+            .map(|nla| nla.map_err(|err|DecodeError::from(err)).and_then(|nla| NlPolicyTypeAttrs::parse(&nla)))
             .collect::<Result<Vec<_>, _>>()
             .context("failed to parse AttributePolicyAttr")?;
 
@@ -168,6 +170,7 @@ impl Nla for NlPolicyTypeAttrs {
 impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
     for NlPolicyTypeAttrs
 {
+    type Error = DecodeError;
     fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {

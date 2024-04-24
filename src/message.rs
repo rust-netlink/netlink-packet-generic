@@ -165,6 +165,7 @@ where
 impl<F> NetlinkDeserializable for GenlMessage<F>
 where
     F: ParseableParametrized<[u8], GenlHeader> + Debug,
+    F::Error: Into<DecodeError>,
 {
     type Error = DecodeError;
     fn deserialize(
