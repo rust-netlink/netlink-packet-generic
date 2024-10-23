@@ -28,7 +28,7 @@ fn main() {
 
     socket.send(&txbuf, 0).unwrap();
 
-    let mut rxbuf = vec![0u8; 4096];
+    let mut rxbuf = Vec::with_capacity(4096);
     let mut offset = 0;
 
     'outer: loop {
