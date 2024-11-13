@@ -102,8 +102,78 @@ pub const DEVLINK_ATTR_DESIRED_TYPE: u16 = 5; /* uint16 */
 pub const DEVLINK_ATTR_NETDEV_IF_INDEX: u16 = 6; /* uint32 */
 pub const DEVLINK_ATTR_NETDEV_NAME: u16 = 7; /* string */
 
+pub const DEVLINK_ATTR_PORT_IBDEV_NAME: u16 = 8;		/* string */
+pub const DEVLINK_ATTR_PORT_SPLIT_COUNT: u16 = 9;		/* u32 */
+pub const DEVLINK_ATTR_PORT_SPLIT_GROUP: u16 = 10;		/* u32 */
+pub const DEVLINK_ATTR_SB_INDEX: u16 = 11;			/* u32 */
+pub const DEVLINK_ATTR_SB_SIZE: u16 = 12;			/* u32 */
+pub const DEVLINK_ATTR_SB_INGRESS_POOL_COUNT: u16 = 13;	/* u16 */
+pub const DEVLINK_ATTR_SB_EGRESS_POOL_COUNT: u16 = 14;	/* u16 */
+pub const DEVLINK_ATTR_SB_INGRESS_TC_COUNT: u16 = 15;	/* u16 */
+pub const DEVLINK_ATTR_SB_EGRESS_TC_COUNT: u16 = 16;	/* u16 */
+pub const DEVLINK_ATTR_SB_POOL_INDEX: u16 = 17;		/* u16 */
+pub const DEVLINK_ATTR_SB_POOL_TYPE: u16 = 18;		/* u8 */
+pub const DEVLINK_ATTR_SB_POOL_SIZE: u16 = 19;		/* u32 */
+pub const DEVLINK_ATTR_SB_POOL_THRESHOLD_TYPE: u16 = 20;	/* u8 */
+pub const DEVLINK_ATTR_SB_THRESHOLD: u16 = 21;		/* u32 */
+pub const DEVLINK_ATTR_SB_TC_INDEX: u16 = 22;		/* u16 */
+pub const DEVLINK_ATTR_SB_OCC_CUR: u16 = 23;		/* u32 */
+pub const DEVLINK_ATTR_SB_OCC_MAX: u16 = 24;		/* u32 */
+pub const DEVLINK_ATTR_ESWITCH_MODE: u16 = 25;		/* u16 */
+pub const DEVLINK_ATTR_ESWITCH_INLINE_MODE: u16 = 26;	/* u8 */
+pub const DEVLINK_ATTR_DPIPE_TABLES: u16 = 27;		/* nested */
+pub const DEVLINK_ATTR_DPIPE_TABLE: u16 = 28;		/* nested */
+pub const DEVLINK_ATTR_DPIPE_TABLE_NAME: u16 = 29;		/* string */
+pub const DEVLINK_ATTR_DPIPE_TABLE_SIZE: u16 = 30;		/* u64 */
+pub const DEVLINK_ATTR_DPIPE_TABLE_MATCHES: u16 = 31;	/* nested */
+pub const DEVLINK_ATTR_DPIPE_TABLE_ACTIONS: u16 = 32;	/* nested */
+pub const DEVLINK_ATTR_DPIPE_TABLE_COUNTERS_ENABLED: u16 = 33;	/* u8 */
+pub const DEVLINK_ATTR_DPIPE_ENTRIES: u16 = 34;		/* nested */
+pub const DEVLINK_ATTR_DPIPE_ENTRY: u16 = 35;		/* nested */
+pub const DEVLINK_ATTR_DPIPE_ENTRY_INDEX: u16 = 36;		/* u64 */
+pub const DEVLINK_ATTR_DPIPE_ENTRY_MATCH_VALUES: u16 = 37;	/* nested */
+pub const DEVLINK_ATTR_DPIPE_ENTRY_ACTION_VALUES: u16 = 38;	/* nested */
+pub const DEVLINK_ATTR_DPIPE_ENTRY_COUNTER: u16 = 39;	/* u64 */
+pub const DEVLINK_ATTR_DPIPE_MATCH: u16 = 40;		/* nested */
+pub const DEVLINK_ATTR_DPIPE_MATCH_VALUE: u16 = 41;		/* nested */
+pub const DEVLINK_ATTR_DPIPE_MATCH_TYPE: u16 = 42;		/* u32 */
+pub const DEVLINK_ATTR_DPIPE_ACTION: u16 = 43;		/* nested */
+pub const DEVLINK_ATTR_DPIPE_ACTION_VALUE: u16 = 44;		/* nested */
+pub const DEVLINK_ATTR_DPIPE_ACTION_TYPE: u16 = 45;		/* u32 */
+pub const DEVLINK_ATTR_DPIPE_VALUE: u16 = 46;
+pub const DEVLINK_ATTR_DPIPE_VALUE_MASK: u16 = 47;
+pub const DEVLINK_ATTR_DPIPE_VALUE_MAPPING: u16 = 48;	/* u32 */
+pub const DEVLINK_ATTR_DPIPE_HEADERS: u16 = 49;		/* nested */
+pub const DEVLINK_ATTR_DPIPE_HEADER: u16 = 50;		/* nested */
+pub const DEVLINK_ATTR_DPIPE_HEADER_NAME: u16 = 51;		/* string */
+pub const DEVLINK_ATTR_DPIPE_HEADER_ID: u16 = 52;		/* u32 */
+pub const DEVLINK_ATTR_DPIPE_HEADER_FIELDS: u16 = 53;	/* nested */
+pub const DEVLINK_ATTR_DPIPE_HEADER_GLOBAL: u16 = 54;	/* u8 */
+pub const DEVLINK_ATTR_DPIPE_HEADER_INDEX: u16 = 55;	/* u32 */
+pub const DEVLINK_ATTR_DPIPE_FIELD: u16 = 56;		/* nested */
+pub const DEVLINK_ATTR_DPIPE_FIELD_NAME: u16 = 57;		/* string */
+pub const DEVLINK_ATTR_DPIPE_FIELD_ID: u16 = 58;		/* u32 */
+pub const DEVLINK_ATTR_DPIPE_FIELD_BITWIDTH: u16 = 59;	/* u32 */
+pub const DEVLINK_ATTR_DPIPE_FIELD_MAPPING_TYPE: u16 = 60;	/* u32 */
+pub const DEVLINK_ATTR_ESWITCH_ENCAP_MODE: u16 = 62;	/* u8 */
+pub const DEVLINK_ATTR_RESOURCE_LIST: u16 = 63;		/* nested */
+pub const DEVLINK_ATTR_RESOURCE: u16 = 64;			/* nested */
+pub const DEVLINK_ATTR_RESOURCE_NAME: u16 = 65;		/* string */
+pub const DEVLINK_ATTR_RESOURCE_ID: u16 = 66;		/* u64 */
+pub const DEVLINK_ATTR_RESOURCE_SIZE: u16 = 67;		/* u64 */
+pub const DEVLINK_ATTR_RESOURCE_SIZE_NEW: u16 = 68;		/* u64 */
+pub const DEVLINK_ATTR_RESOURCE_SIZE_VALID: u16 = 69;	/* u8 */
+pub const DEVLINK_ATTR_RESOURCE_SIZE_MIN: u16 = 70;		/* u64 */
+pub const DEVLINK_ATTR_RESOURCE_SIZE_MAX: u16 = 71;		/* u64 */
+pub const DEVLINK_ATTR_RESOURCE_SIZE_GRAN: u16 = 72;        /* u64 */
+pub const DEVLINK_ATTR_RESOURCE_UNIT: u16 = 73;		/* u8 */
+pub const DEVLINK_ATTR_RESOURCE_OCC: u16 = 74;		/* u64 */
+pub const DEVLINK_ATTR_DPIPE_TABLE_RESOURCE_ID: u16 = 75;	/* u64 */
+pub const DEVLINK_ATTR_DPIPE_TABLE_RESOURCE_UNITS: u16 = 76;/* u64 */
+
 pub const DEVLINK_ATTR_PORT_FLAVOUR: u16 = 77; /* uint16 */
 pub const DEVLINK_ATTR_PORT_NUMBER: u16 = 78; /* uint32 */
+pub const DEVLINK_ATTR_PORT_SPLIT_SUBPORT_NUMBER: u16 = 79; /* u32 */
 
 pub const DEVLINK_ATTR_PARAM: u16 = 80; /* nested */
 pub const DEVLINK_ATTR_PARAM_NAME: u16 = 81; /* string */
@@ -133,8 +203,91 @@ pub const DEVLINK_ATTR_INFO_VERSION_STORED: u16 = 102; /* nested */
 pub const DEVLINK_ATTR_INFO_VERSION_NAME: u16 = 103; /* string */
 pub const DEVLINK_ATTR_INFO_VERSION_VALUE: u16 = 104; /* string */
 
-pub const DEVLINK_ATTR_FLASH_UPDATE_FILE_NAME: u16 = 122; /* string */
+pub const DEVLINK_ATTR_SB_POOL_CELL_SIZE: u16 = 105;		/* u32 */
 
+pub const DEVLINK_ATTR_FMSG: u16 = 106;			/* nested */
+pub const DEVLINK_ATTR_FMSG_OBJ_NEST_START: u16 = 107;	/* flag */
+pub const DEVLINK_ATTR_FMSG_PAIR_NEST_START: u16 = 108;	/* flag */
+pub const DEVLINK_ATTR_FMSG_ARR_NEST_START: u16 = 109;	/* flag */
+pub const DEVLINK_ATTR_FMSG_NEST_END: u16 = 110;		/* flag */
+pub const DEVLINK_ATTR_FMSG_OBJ_NAME: u16 = 111;		/* string */
+pub const DEVLINK_ATTR_FMSG_OBJ_VALUE_TYPE: u16 = 112;	/* u8 */
+pub const DEVLINK_ATTR_FMSG_OBJ_VALUE_DATA: u16 = 113;	/* dynamic */
+
+pub const DEVLINK_ATTR_HEALTH_REPORTER: u16 = 114;			/* nested */
+pub const DEVLINK_ATTR_HEALTH_REPORTER_NAME: u16 = 115;		/* string */
+pub const DEVLINK_ATTR_HEALTH_REPORTER_STATE: u16 = 116;		/* u8 */
+pub const DEVLINK_ATTR_HEALTH_REPORTER_ERR_COUNT: u16 = 117;		/* u64 */
+pub const DEVLINK_ATTR_HEALTH_REPORTER_RECOVER_COUNT: u16 = 118;	/* u64 */
+pub const DEVLINK_ATTR_HEALTH_REPORTER_DUMP_TS: u16 = 119;		/* u64 */
+pub const DEVLINK_ATTR_HEALTH_REPORTER_GRACEFUL_PERIOD: u16 = 120;	/* u64 */
+pub const DEVLINK_ATTR_HEALTH_REPORTER_AUTO_RECOVER: u16 = 121;	/* u8 */
+
+pub const DEVLINK_ATTR_FLASH_UPDATE_FILE_NAME: u16 = 122; /* string */
+pub const DEVLINK_ATTR_FLASH_UPDATE_COMPONENT: u16 = 123;	/* string */
+pub const DEVLINK_ATTR_FLASH_UPDATE_STATUS_MSG: u16 = 124;	/* string */
+pub const DEVLINK_ATTR_FLASH_UPDATE_STATUS_DONE: u16 = 125;	/* u64 */
+pub const DEVLINK_ATTR_FLASH_UPDATE_STATUS_TOTAL: u16 = 126;	/* u64 */
+
+pub const DEVLINK_ATTR_PORT_PCI_PF_NUMBER: u16 = 127;	/* u16 */
+pub const DEVLINK_ATTR_PORT_PCI_VF_NUMBER: u16 = 128;	/* u16 */
+
+pub const DEVLINK_ATTR_STATS: u16 = 129;	/* nested */
+
+pub const DEVLINK_ATTR_TRAP_NAME: u16 = 130;	/* string */
+/* enum devlink_trap_action */
+pub const DEVLINK_ATTR_TRAP_ACTION: u16 = 131;	/* u8 */
+/* enum devlink_trap_type */
+pub const DEVLINK_ATTR_TRAP_TYPE: u16 = 132;	/* u8 */
+pub const DEVLINK_ATTR_TRAP_GENERIC: u16 = 133;	/* flag */
+pub const DEVLINK_ATTR_TRAP_METADATA: u16 = 134;	/* nested */
+pub const DEVLINK_ATTR_TRAP_GROUP_NAME: u16 = 135;	/* string */
 pub const DEVLINK_ATTR_RELOAD_FAILED: u16 = 136; /* uint8 */
+
+pub const DEVLINK_ATTR_HEALTH_REPORTER_DUMP_TS_NS: u16 = 137;	/* u64 */
+
+pub const DEVLINK_ATTR_NETNS_FD: u16 = 138;			/* u32 */
+pub const DEVLINK_ATTR_NETNS_PID: u16 = 139;			/* u32 */
+pub const DEVLINK_ATTR_NETNS_ID: u16 = 140;			/* u32 */
+
+pub const DEVLINK_ATTR_HEALTH_REPORTER_AUTO_DUMP: u16 = 141;	/* u8 */
+
+pub const DEVLINK_ATTR_TRAP_POLICER_ID: u16 = 142;			/* u32 */
+pub const DEVLINK_ATTR_TRAP_POLICER_RATE: u16 = 143;			/* u64 */
+pub const DEVLINK_ATTR_TRAP_POLICER_BURST: u16 = 144;		/* u64 */
+
+pub const DEVLINK_ATTR_PORT_FUNCTION: u16 = 145;			/* nested */
+
+pub const DEVLINK_ATTR_INFO_BOARD_SERIAL_NUMBER: u16 = 146;	/* string */
+
+pub const DEVLINK_ATTR_PORT_LANES: u16 = 147;			/* u32 */
+pub const DEVLINK_ATTR_PORT_SPLITTABLE: u16 = 148;			/* u8 */
+
+pub const DEVLINK_ATTR_PORT_EXTERNAL: u16 = 149;		/* u8 */
+pub const DEVLINK_ATTR_PORT_CONTROLLER_NUMBER: u16 = 150;	/* u32 */
+
+pub const DEVLINK_ATTR_FLASH_UPDATE_STATUS_TIMEOUT: u16 = 151;	/* u64 */
+pub const DEVLINK_ATTR_FLASH_UPDATE_OVERWRITE_MASK: u16 = 152;	/* bitfield32 */
+
 pub const DEVLINK_ATTR_RELOAD_ACTION: u16 = 153; /* uint8 */
-pub const DEVLINK_ATTR_DEVICE_STATS: u16 = 156; /* nested */
+pub const DEVLINK_ATTR_RELOAD_ACTIONS_PERFORMED: u16 = 154; /* bitfield32 */
+pub const DEVLINK_ATTR_RELOAD_LIMITS: u16 = 155; /* bitfield32 */
+
+pub const DEVLINK_ATTR_DEV_STATS: u16 = 156; /* nested */
+pub const DEVLINK_ATTR_RELOAD_STATS: u16 = 157; /* nested */
+pub const DEVLINK_ATTR_RELOAD_STATS_ENTRY: u16 = 158; /* nested */
+pub const DEVLINK_ATTR_RELOAD_STATS_LIMIT: u16 = 159; /* uint8 */
+pub const DEVLINK_ATTR_RELOAD_STATS_VALUE: u16 = 160; /* uint32 */
+pub const DEVLINK_ATTR_REMOTE_RELOAD_SATS: u16 = 161; /* nested */
+pub const DEVLINK_ATTR_RELOAD_ACTION_INFO: u16 = 162; /* nested */
+pub const DEVLINK_ATTR_RELAOD_ACTION_STATS: u16 = 163; /* nested */
+
+pub const DEVLINK_ATTR_PORT_PCI_SF_NUMBER: u16 = 164;	/* u32 */
+
+pub const DEVLINK_ATTR_RATE_TYPE: u16 = 165;			/* u16 */
+pub const DEVLINK_ATTR_RATE_TX_SHARE: u16 = 166;		/* u64 */
+pub const DEVLINK_ATTR_RATE_TX_MAX: u16 = 167;		/* u64 */
+pub const DEVLINK_ATTR_RATE_NODE_NAME: u16 = 168;		/* string */
+pub const DEVLINK_ATTR_RATE_PARENT_NODE_NAME: u16 = 169;	/* string */
+
+pub const DEVLINK_ATTR_REGION_MAX_SNAPSHOTS: u16 =170; /* uint32 */
