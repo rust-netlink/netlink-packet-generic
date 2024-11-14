@@ -73,27 +73,106 @@ pub const NL_POLICY_TYPE_ATTR_PAD: u16 = 11;
 pub const NL_POLICY_TYPE_ATTR_MASK: u16 = 12;
 
 /// Devlink commands
-/// DEVLINK_CMD_GET: Get all devices supporting devlink
-pub const DEVLINK_CMD_GET: u8 = 1;
-pub const DEVLINK_CMD_DEVICE_DATA: u8 = 3;
-pub const DEVLINK_CMD_PORT_GET: u8 = 5;
+/// 
+pub const DEVLINK_CMD_GET: u8 = 1;		/* can dump */
+pub const DEVLINK_CMD_SET: u8 = 2;
+pub const DEVLINK_CMD_NEW: u8 = 3;
+pub const DEVLINK_CMD_DEL: u8 = 4;
+
+pub const DEVLINK_CMD_PORT_GET: u8 = 5;		/* can dump */
+pub const DEVLINK_CMD_PORT_SET: u8 = 6;
+pub const DEVLINK_CMD_PORT_NEW: u8 = 7;
+pub const DEVLINK_CMD_PORT_DEL: u8 = 8;
+
+pub const DEVLINK_CMD_PORT_SPLIT: u8 = 9;
+pub const DEVLINK_CMD_PORT_UNSPLIT: u8 = 10;
+
+pub const DEVLINK_CMD_SB_GET: u8 = 11;		/* can dump */
+pub const DEVLINK_CMD_SB_SET: u8 = 12;
+pub const DEVLINK_CMD_SB_NEW: u8 = 13;
+pub const DEVLINK_CMD_SB_DEL: u8 = 14;
+
+pub const DEVLINK_CMD_SB_POOL_GET: u8 = 15;	/* can dump */
+pub const DEVLINK_CMD_SB_POOL_SET: u8 = 16;
+pub const DEVLINK_CMD_SB_POOL_NEW: u8 = 17;
+pub const DEVLINK_CMD_SB_POOL_DEL: u8 = 18;
+
+pub const DEVLINK_CMD_SB_PORT_POOL_GET: u8 = 19;	/* can dump */
+pub const DEVLINK_CMD_SB_PORT_POOL_SET: u8 = 20;
+pub const DEVLINK_CMD_SB_PORT_POOL_NEW: u8 = 21;
+pub const DEVLINK_CMD_SB_PORT_POOL_DEL: u8 = 22;
+
+pub const DEVLINK_CMD_SB_TC_POOL_BIND_GET: u8 = 23;	/* can dump */
+pub const DEVLINK_CMD_SB_TC_POOL_BIND_SET: u8 = 24;
+pub const DEVLINK_CMD_SB_TC_POOL_BIND_NEW: u8 = 25;
+pub const DEVLINK_CMD_SB_TC_POOL_BIND_DEL: u8 = 26;
+
+/* Shared buffer occupancy monitoring commands */
+pub const DEVLINK_CMD_SB_OCC_SNAPSHOT: u8 = 27;
+pub const DEVLINK_CMD_SB_OCC_MAX_CLEAR: u8 = 28;
+
+pub const DEVLINK_CMD_ESWITCH_GET: u8 = 29;
+pub const DEVLINK_CMD_ESWITCH_SET: u8 = 30;
+pub const DEVLINK_CMD_DPIPE_TABLE_GET: u8 = 31;
+pub const DEVLINK_CMD_DPIPE_ENTRIES_GET: u8 = 32;
+pub const DEVLINK_CMD_DPIPE_HEADERS_GET: u8 = 33;
+pub const DEVLINK_CMD_DPIPE_TABLE_COUNTERS_SET: u8 = 34;
+pub const DEVLINK_CMD_RESOURCE_SET: u8 = 35;
+pub const DEVLINK_CMD_RESOURCE_DUMP: u8 = 36;
 pub const DEVLINK_CMD_RELOAD: u8 = 37;
-pub const DEVLINK_CMD_PARAM_GET: u8 = 38;
+
+pub const DEVLINK_CMD_PARAM_GET: u8 = 38;		/* can dump */
 pub const DEVLINK_CMD_PARAM_SET: u8 = 39;
+pub const DEVLINK_CMD_PARAM_NEW: u8 = 40;
+pub const DEVLINK_CMD_PARAM_DEL: u8 = 41;
+
 pub const DEVLINK_CMD_REGION_GET: u8 = 42;
 pub const DEVLINK_CMD_REGION_SET: u8 = 43;
 pub const DEVLINK_CMD_REGION_NEW: u8 = 44;
 pub const DEVLINK_CMD_REGION_DEL: u8 = 45;
 pub const DEVLINK_CMD_REGION_READ: u8 = 46;
 
-/// DEVLINK_CMD_INFO_GET: Get specific device info
-pub const DEVLINK_CMD_INFO_GET: u8 = 51;
+pub const DEVLINK_CMD_PORT_PARAM_GET: u8 = 47;	/* can dump */
+pub const DEVLINK_CMD_PORT_PARAM_SET: u8 = 48;
+pub const DEVLINK_CMD_PORT_PARAM_NEW: u8 = 49;
+pub const DEVLINK_CMD_PORT_PARAM_DEL: u8 = 50;
 
-/// Flas update devlink commands
+pub const DEVLINK_CMD_INFO_GET: u8 = 51;		/* can dump */
+
+pub const DEVLINK_CMD_HEALTH_REPORTER_GET: u8 = 52;
+pub const DEVLINK_CMD_HEALTH_REPORTER_SET: u8 = 53;
+pub const DEVLINK_CMD_HEALTH_REPORTER_RECOVER: u8 = 54;
+pub const DEVLINK_CMD_HEALTH_REPORTER_DIAGNOSE: u8 = 55;
+pub const DEVLINK_CMD_HEALTH_REPORTER_DUMP_GET: u8 = 56;
+pub const DEVLINK_CMD_HEALTH_REPORTER_DUMP_CLEAR: u8 = 57;
+
 pub const DEVLINK_CMD_FLASH_UPDATE: u8 = 58;
-pub const DEVLINK_CMD_FLASH_UPDATE_END: u8 = 59;
-pub const DEVLINK_CMD_FLASH_UPDATE_STATUS: u8 = 60;
+pub const DEVLINK_CMD_FLASH_UPDATE_END: u8 = 59;		/* notification only */
+pub const DEVLINK_CMD_FLASH_UPDATE_STATUS: u8 = 60;	/* notification only */
 
+pub const DEVLINK_CMD_TRAP_GET: u8 = 61;		/* can dump */
+pub const DEVLINK_CMD_TRAP_SET: u8 = 62;
+pub const DEVLINK_CMD_TRAP_NEW: u8 = 63;
+pub const DEVLINK_CMD_TRAP_DEL: u8 = 64;
+
+pub const DEVLINK_CMD_TRAP_GROUP_GET: u8 = 65;	/* can dump */
+pub const DEVLINK_CMD_TRAP_GROUP_SET: u8 = 66;
+pub const DEVLINK_CMD_TRAP_GROUP_NEW: u8 = 67;
+pub const DEVLINK_CMD_TRAP_GROUP_DEL: u8 = 68;
+
+pub const DEVLINK_CMD_TRAP_POLICER_GET: u8 = 69;	/* can dump */
+pub const DEVLINK_CMD_TRAP_POLICER_SET: u8 = 70;
+pub const DEVLINK_CMD_TRAP_POLICER_NEW: u8 = 71;
+pub const DEVLINK_CMD_TRAP_POLICER_DEL: u8 = 72;
+
+pub const DEVLINK_CMD_HEALTH_REPORTER_TEST: u8 = 73;
+
+pub const DEVLINK_CMD_RATE_GET: u8 = 74;		/* can dump */
+pub const DEVLINK_CMD_RATE_SET: u8 = 75;
+pub const DEVLINK_CMD_RATE_NEW: u8 = 76;
+pub const DEVLINK_CMD_RATE_DEL: u8 = 77;
+
+/// Devlink attributes
 pub const DEVLINK_ATTR_BUS_NAME: u16 = 1; /* string */
 pub const DEVLINK_ATTR_LOCATION: u16 = 2; /* string */
 pub const DEVLINK_ATTR_PORT_INDEX: u16 = 3; /* uint32 */
