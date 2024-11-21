@@ -107,6 +107,7 @@ impl GenlDevlinkCmd {
             GetSbPortPool => true,
             GetSbTcPoolBind => true,
             GetParams => true,
+            GetRegion => true,
             GetPortParam => true,
             GetDeviceInfo => true,
             GetTrap => true,

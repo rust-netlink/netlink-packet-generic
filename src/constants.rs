@@ -73,7 +73,6 @@ pub const NL_POLICY_TYPE_ATTR_PAD: u16 = 11;
 pub const NL_POLICY_TYPE_ATTR_MASK: u16 = 12;
 
 /// Devlink commands
-/// 
 pub const DEVLINK_CMD_GET: u8 = 1;		/* can dump */
 pub const DEVLINK_CMD_SET: u8 = 2;
 pub const DEVLINK_CMD_NEW: u8 = 3;
