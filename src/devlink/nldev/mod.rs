@@ -10,6 +10,7 @@ use netlink_packet_utils::{
     DecodeError,
 };
 use std::mem::size_of_val;
+use std::fmt;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum GenlDevlinkAttrs {
@@ -402,6 +403,190 @@ impl GenlDevlinkAttrs {
             RateNodeName(_) => "RateNodeName".to_string(),
             RateParentNodeName(_) => "RateParentNodeName".to_string(),
             RegionMaxSnapshots(_) => "RegionMaxSnapshots".to_string(),
+        }
+    }
+}
+
+impl fmt::Display for GenlDevlinkAttrs {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use GenlDevlinkAttrs::*;
+        match self {
+            BusName(s) => write!(f, "BusName: {}", s),
+            Location(s) => write!(f, "Location: {}", s),
+            PortIndex(v) => write!(f, "PortIndex: {}", v),
+            PortType(v) => write!(f, "PortType: {}", v),
+            DesiredType(v) => write!(f, "DesiredType: {}", v),
+            NetdevIndex(v) => write!(f, "NetdevIndex: {}", v),
+            NetdevName(s) => write!(f, "NetdevName: {}", s),
+            PortIbdevName(s) => write!(f, "PortIbdevName: {}", s),
+            PortSplitCount(v) => write!(f, "PortSplitCount: {}", v),
+            PortSplitGroup(v) => write!(f, "PortSplitGroup: {}", v),
+            SbIndex(v) => write!(f, "SbIndex: {}", v),
+            SbSize(v) => write!(f, "SbSize: {}", v),
+            SbIngressPoolCount(v) => write!(f, "SbIngressPoolCount: {}", v),
+            SbEgressPoolCount(v) => write!(f, "SbEgressPoolCount: {}", v),
+            SbIngressTcCount(v) => write!(f, "SbIngressTcCount: {}", v),
+            SbEgressTcCount(v) => write!(f, "SbEgressTcCount: {}", v),
+            SbPoolIndex(v) => write!(f, "SbPoolIndex: {}", v),
+            SbPoolType(v) => write!(f, "SbPoolType: {}", v),
+            SbPoolSize(v) => write!(f, "SbPoolSize: {}", v),
+            SbPoolThresholdType(v) => write!(f, "SbPoolThresholdType: {}", v),
+            SbPoolThreshold(v) => write!(f, "SbPoolThreshold: {}", v),
+            SbTcIndex(v) => write!(f, "SbTcIndex: {}", v),
+            SbOccCur(v) => write!(f, "SbOccCur: {}", v),
+            SbOccMax(v) => write!(f, "SbOccMax: {}", v),
+            EswitchMode(v) => write!(f, "EswitchMode: {}", v),
+            EswitchInlineMode(v) => write!(f, "EswitchInlineMode: {}", v),
+            DpipeTableName(s) => write!(f, "DpipeTableName: {}", s),
+            DpipeTableSize(v) => write!(f, "DpipeTableSize: {}", v),
+            DpipeTableCountersEnabled(v) => write!(f, "DpipeTableCountersEnabled: {}", v),
+            DpipeEntryIndex(v) => write!(f, "DpipeEntryIndex: {}", v),
+            DpipeEntryCounter(v) => write!(f, "DpipeEntryCounter: {}", v),
+            DpipeMatchType(v) => write!(f, "DpipeMatchType: {}", v),
+            DpipeActionType(v) => write!(f, "DpipeActionType: {}", v),
+            DpipeValue(v) => write!(f, "DpipeValue: {}", v),
+            DpipeValueMask(v) => write!(f, "DpipeValueMask: {}", v),
+            DpipeValueMapping(v) => write!(f, "DpipeValueMapping: {}", v),
+            DpipeHeaderName(s) => write!(f, "DpipeHeaderName: {}", s),
+            DpipeHeaderId(v) => write!(f, "DpipeHeaderId: {}", v),
+            DpipeHeaderGlobal(v) => write!(f, "DpipeHeaderGlobal: {}", v),
+            DpipeHeaderIndex(v) => write!(f, "DpipeHeaderIndex: {}", v),
+            DpipeFieldName(s) => write!(f, "DpipeFieldName: {}", s),
+            DpipeFieldId(v) => write!(f, "DpipeFieldId: {}", v),
+            DpipeFieldBitwidth(v) => write!(f, "DpipeFieldBitwidth: {}", v),
+            DpipeFieldMappingType(v) => write!(f, "DpipeFieldMappingType: {}", v),
+            EswitchEncapMode(v) => write!(f, "EswitchEncapMode: {}", v),
+            ResoureceName(s) => write!(f, "ResoureceName: {}", s),
+            ResourceId(v) => write!(f, "ResourceId: {}", v),
+            ResourceSize(v) => write!(f, "ResourceSize: {}", v),
+            ResourceSizeNew(v) => write!(f, "ResourceSizeNew: {}", v),
+            ResourceSizeValid(v) => write!(f, "ResourceSizeValid: {}", v),
+            ResourceSizeMin(v) => write!(f, "ResourceSizeMin: {}", v),
+            ResourceSizeMax(v) => write!(f, "ResourceSizeMax: {}", v),
+            ResourceSizeGran(v) => write!(f, "ResourceSizeGran: {}", v),
+            ResourceUnit(v) => write!(f, "ResourceUnit: {}", v),
+            ResourceOcc(v) => write!(f, "ResourceOcc: {}", v),
+            DpipeTableResourceId(v) => write!(f, "DpipeTableResourceId: {}", v),
+            DpipeTableResourceUnit(v) => write!(f, "DpipeTableResourceUnit: {}", v),
+            PortFlavour(v) => write!(f, "PortFlavour: {}", v),
+            PortNumber(v) => write!(f, "PortNumber: {}", v),
+            ParamName(s) => write!(f, "ParamName: {}", s),
+            ParamGeneric(v) => write!(f, "ParamGeneric: {}", v),
+            ParamType(v) => write!(f, "ParamType: {}", v),
+            ParamValue(v) => write!(f, "ParamValue: {}", v),
+            ParamValueCmode(v) => write!(f, "ParamValueCmode: {}", v),
+            RegionName(s) => write!(f, "RegionName: {}", s),
+            RegionSize(v) => write!(f, "RegionSize: {}", v),
+            RegionSnapshotId(v) => write!(f, "RegionSnapshotId: {}", v),
+            RegionChunkData(v) => write!(f, "RegionChunkData: {:?}", v),
+            RegionChunkOffset(v) => write!(f, "RegionChunkOffset: {}", v),
+            RegionChunkSize(v) => write!(f, "RegionChunkSize: {}", v),
+            InfoDriverName(s) => write!(f, "InfoDriverName: {}", s),
+            InfoSerialNo(s) => write!(f, "InfoSerialNo: {}", s),
+            InfoVersionName(s) => write!(f, "InfoVersionName: {}", s),
+            InfoVersionValue(s) => write!(f, "InfoVersionValue: {}", s),
+            SbPoolCellSize(v) => write!(f, "SbPoolCellSize: {}", v),
+            FmsgObjNestStart(v) => write!(f, "FmsgObjNestStart: {}", v),
+            FmsgPairNestStart(v) => write!(f, "FmsgPairNestStart: {}", v),
+            FmsgArrNestStart(v) => write!(f, "FmsgArrNestStart: {}", v),
+            FmsgNestEnd(v) => write!(f, "FmsgNestEnd: {}", v),
+            FmsgObjName(s) => write!(f, "FmsgObjName: {}", s),
+            FmsgObjValueType(v) => write!(f, "FmsgObjValueType: {}", v),
+            HealthReporterName(s) => write!(f, "HealthReporterName: {}", s),
+            HealthReporterState(v) => write!(f, "HealthReporterState: {}", v),
+            HealthReporterErrCount(v) => write!(f, "HealthReporterErrCount: {}", v),
+            HealthReporterRecoverCount(v) => write!(f, "HealthReporterRecoverCount: {}", v),
+            HealthReporterDumpTs(v) => write!(f, "HealthReporterDumpTs: {}", v),
+            HealthReporterGracefulPeriod(v) => write!(f, "HealthReporterGracefulPeriod: {}", v),
+            HealthReporterAucoRecover(v) => write!(f, "HealthReporterAucoRecover: {}", v),
+            FlashUpdateFileName(s) => write!(f, "FlashUpdateFileName: {}", s),
+            FlashUpdateComponent(s) => write!(f, "FlashUpdateComponent: {}", s),
+            FlashUpdateStatusMsg(s) => write!(f, "FlashUpdateStatusMsg: {}", s),
+            FlashUpdateStatusTimeout(v) => write!(f, "FlashUpdateStatusTimeout: {}", v),
+            FlashUpdateOverWriteMask(v) => write!(f, "FlashUpdateOverWriteMask: {}", v),
+            ReloadAction(v) => write!(f, "ReloadAction: {}", v),
+            ReloadActionPerformed(v) => write!(f, "ReloadActionPerformed: {}", v),
+            ReloadLimits(v) => write!(f, "ReloadLimits: {}", v),
+            PortPciSfNo(v) => write!(f, "PortPciSfNo: {}", v),
+            RateType(v) => write!(f, "RateType: {}", v),
+            RateTxShare(v) => write!(f, "RateTxShare: {}", v),
+            RateTxMax(v) => write!(f, "RateTxMax: {}", v),
+            RateNodeName(s) => write!(f, "RateNodeName: {}", s),
+            RateParentNodeName(s) => write!(f, "RateParentNodeName: {}", s),
+            RegionMaxSnapshots(v) => write!(f, "RegionMaxSnapshots: {}", v),
+            FlashUpdateStatusDone(v) => write!(f, "FlashUpdateStatusDone: {}", v),
+            FlashUpdateStatusTotal(v) => write!(f, "FlashUpdateStatusTotal: {}", v),
+            PortPciPfNumber(v) => write!(f, "PortPciPfNumber: {}", v),
+            PortPciVfNumber(v) => write!(f, "PortPciVfNumber: {}", v),
+            TrapName(s) => write!(f, "TrapName: {}", s),
+            TrapAction(v) => write!(f, "TrapAction: {}", v),
+            TrapType(v) => write!(f, "TrapType: {}", v),
+            TrapGeneric(v) => write!(f, "TrapGeneric: {}", v),
+            TrapGroupName(s) => write!(f, "TrapGroupName: {}", s),
+            ReloadStatus(v) => write!(f, "ReloadStatus: {}", v),
+            HealthReporterDumpTsNs(v) => write!(f, "HealthReporterDumpTsNs: {}", v),
+            NetnsFd(v) => write!(f, "NetnsFd: {}", v),
+            NetnsPid(v) => write!(f, "NetnsPid: {}", v),
+            NetnsId(v) => write!(f, "NetnsId: {}", v),
+            HealthReporterAutoDump(v) => write!(f, "HealthReporterAutoDump: {}", v),
+            TrapPolicerId(v) => write!(f, "TrapPolicerId: {}", v),
+            TrapPolicerRate(v) => write!(f, "TrapPolicerRate: {}", v),
+            TrapPolicerBurst(v) => write!(f, "TrapPolicerBurst: {}", v),
+            InfoBoardSerialNumber(s) => write!(f, "InfoBoardSerialNumber: {}", s),
+            PortLanes(v) => write!(f, "PortLanes: {}", v),
+            PortSplittable(v) => write!(f, "PortSplittable: {}", v),
+            PortExternal(v) => write!(f, "PortExternal: {}", v),
+            PortControllerNo(v) => write!(f, "PortControllerNo: {}", v),
+            ReloadStatsLimit(v) => write!(f, "ReloadStatsLimit: {}", v),
+            ReloadStatsValue(v) => write!(f, "ReloadStatsValue: {}", v),
+
+            RemoteReloadStats(v) |
+            ReloadActionInfo(v) |
+            ReloadActionStats(v) |
+            DevStats(v) |
+            ReloadStats(v) |
+            ReloadStatsEntry(v) |
+            PortFunction(v) |
+            TrapMetadata(v) |
+            Stats(v) |
+            DpipeEntries(v) |
+            DpipeEntry(v) |
+            DpipeEntryMatchValues(v) |
+            DpipeEntryActionValues(v) |
+            DpipeMatch(v) |
+            DpipeMatchValue(v) |
+            DpipeAction(v) |
+            DpipeActionValue(v) |
+            DpipeHeaders(v) |
+            DpipeHader(v) |
+            DpipeHeaderFields(v) |
+            DpipeField(v) |
+            ResourceList(v) |
+            Resource(v) |
+            Param(v) |
+            ParamValueList(v) |
+            ParamValueData(v) |
+            RegionSnapshots(v) |
+            RegionSnapshot(v) |
+            RegionChunks(v) |
+            RegionChunk(v) |
+            Fmsg(v) |
+            InfoVersionFixed(v) |
+            InfoVersionRunning(v) |
+            InfoVersionStored(v) |
+            DpipeTable(v) |
+            DpipeTableMatches(v) |
+            DpipeTableActions(v) |
+            FmsgObjValueData(v) |
+            HealthReporter(v) |
+            DpipeTables(v) => {
+                let attibutes = v
+                    .iter()
+                    .map(|attr| attr.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ");
+                write!(f, "{}: {}", self.get_attribute_name(), attibutes)
+            }
         }
     }
 }
