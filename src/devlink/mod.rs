@@ -99,23 +99,7 @@ pub enum GenlDevlinkCmd {
 impl GenlDevlinkCmd {
     pub fn dump_capable(&self) -> bool {
         use GenlDevlinkCmd::*;
-        match self {
-            GetDevices => true,
-            GetPort => true,
-            GetSb => true,
-            GetSbPool => true,
-            GetSbPortPool => true,
-            GetSbTcPoolBind => true,
-            GetParams => true,
-            GetRegion => true,
-            GetPortParam => true,
-            GetDeviceInfo => true,
-            GetTrap => true,
-            GetTrapGroup => true,
-            GetTrapPolicer => true,
-            GetRate => true,
-            _ => false,
-        }
+        matches!(self, GetDevices | GetPort | GetSb | GetSbPool | GetSbPortPool | GetSbTcPoolBind | GetParams | GetRegion | GetPortParam | GetDeviceInfo | GetTrap | GetTrapGroup | GetTrapPolicer | GetRate)
     }
 }
 
@@ -126,7 +110,7 @@ impl From<GenlDevlinkCmd> for u8 {
             GetDevices => DEVLINK_CMD_GET,
             SetDevice => DEVLINK_CMD_SET,
             NewDevice => DEVLINK_CMD_NEW,
-            DeleteDevice => DEVLINK_CMD_DEL,            
+            DeleteDevice => DEVLINK_CMD_DEL,
             GetPort => DEVLINK_CMD_PORT_GET,
             SetPort => DEVLINK_CMD_PORT_SET,
             NewPort => DEVLINK_CMD_PORT_NEW,
@@ -184,11 +168,11 @@ impl From<GenlDevlinkCmd> for u8 {
             FlashUdpateEnd => DEVLINK_CMD_FLASH_UPDATE_END,
             FlashUdpateStatus => DEVLINK_CMD_FLASH_UPDATE_STATUS,
             GetTrap => DEVLINK_CMD_TRAP_GET,
-            SetTrap => DEVLINK_CMD_TRAP_SET, 
+            SetTrap => DEVLINK_CMD_TRAP_SET,
             NewTrap => DEVLINK_CMD_TRAP_NEW,
             DeleteTrap => DEVLINK_CMD_TRAP_DEL,
             GetTrapGroup => DEVLINK_CMD_TRAP_GROUP_GET,
-            SetTrapGroup => DEVLINK_CMD_TRAP_GROUP_SET, 
+            SetTrapGroup => DEVLINK_CMD_TRAP_GROUP_SET,
             NewTrapGroup => DEVLINK_CMD_TRAP_GROUP_NEW,
             DeleteTrapGroup => DEVLINK_CMD_TRAP_GROUP_DEL,
             GetTrapPolicer => DEVLINK_CMD_TRAP_POLICER_GET,

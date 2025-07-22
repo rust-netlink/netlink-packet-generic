@@ -411,134 +411,134 @@ impl fmt::Display for GenlDevlinkAttrs {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use GenlDevlinkAttrs::*;
         match self {
-            BusName(s) => write!(f, "BusName: {}", s),
-            Location(s) => write!(f, "Location: {}", s),
-            PortIndex(v) => write!(f, "PortIndex: {}", v),
-            PortType(v) => write!(f, "PortType: {}", v),
-            DesiredType(v) => write!(f, "DesiredType: {}", v),
-            NetdevIndex(v) => write!(f, "NetdevIndex: {}", v),
-            NetdevName(s) => write!(f, "NetdevName: {}", s),
-            PortIbdevName(s) => write!(f, "PortIbdevName: {}", s),
-            PortSplitCount(v) => write!(f, "PortSplitCount: {}", v),
-            PortSplitGroup(v) => write!(f, "PortSplitGroup: {}", v),
-            SbIndex(v) => write!(f, "SbIndex: {}", v),
-            SbSize(v) => write!(f, "SbSize: {}", v),
-            SbIngressPoolCount(v) => write!(f, "SbIngressPoolCount: {}", v),
-            SbEgressPoolCount(v) => write!(f, "SbEgressPoolCount: {}", v),
-            SbIngressTcCount(v) => write!(f, "SbIngressTcCount: {}", v),
-            SbEgressTcCount(v) => write!(f, "SbEgressTcCount: {}", v),
-            SbPoolIndex(v) => write!(f, "SbPoolIndex: {}", v),
-            SbPoolType(v) => write!(f, "SbPoolType: {}", v),
-            SbPoolSize(v) => write!(f, "SbPoolSize: {}", v),
-            SbPoolThresholdType(v) => write!(f, "SbPoolThresholdType: {}", v),
-            SbPoolThreshold(v) => write!(f, "SbPoolThreshold: {}", v),
-            SbTcIndex(v) => write!(f, "SbTcIndex: {}", v),
-            SbOccCur(v) => write!(f, "SbOccCur: {}", v),
-            SbOccMax(v) => write!(f, "SbOccMax: {}", v),
-            EswitchMode(v) => write!(f, "EswitchMode: {}", v),
-            EswitchInlineMode(v) => write!(f, "EswitchInlineMode: {}", v),
-            DpipeTableName(s) => write!(f, "DpipeTableName: {}", s),
-            DpipeTableSize(v) => write!(f, "DpipeTableSize: {}", v),
-            DpipeTableCountersEnabled(v) => write!(f, "DpipeTableCountersEnabled: {}", v),
-            DpipeEntryIndex(v) => write!(f, "DpipeEntryIndex: {}", v),
-            DpipeEntryCounter(v) => write!(f, "DpipeEntryCounter: {}", v),
-            DpipeMatchType(v) => write!(f, "DpipeMatchType: {}", v),
-            DpipeActionType(v) => write!(f, "DpipeActionType: {}", v),
-            DpipeValue(v) => write!(f, "DpipeValue: {}", v),
-            DpipeValueMask(v) => write!(f, "DpipeValueMask: {}", v),
-            DpipeValueMapping(v) => write!(f, "DpipeValueMapping: {}", v),
-            DpipeHeaderName(s) => write!(f, "DpipeHeaderName: {}", s),
-            DpipeHeaderId(v) => write!(f, "DpipeHeaderId: {}", v),
-            DpipeHeaderGlobal(v) => write!(f, "DpipeHeaderGlobal: {}", v),
-            DpipeHeaderIndex(v) => write!(f, "DpipeHeaderIndex: {}", v),
-            DpipeFieldName(s) => write!(f, "DpipeFieldName: {}", s),
-            DpipeFieldId(v) => write!(f, "DpipeFieldId: {}", v),
-            DpipeFieldBitwidth(v) => write!(f, "DpipeFieldBitwidth: {}", v),
-            DpipeFieldMappingType(v) => write!(f, "DpipeFieldMappingType: {}", v),
-            EswitchEncapMode(v) => write!(f, "EswitchEncapMode: {}", v),
-            ResoureceName(s) => write!(f, "ResoureceName: {}", s),
-            ResourceId(v) => write!(f, "ResourceId: {}", v),
-            ResourceSize(v) => write!(f, "ResourceSize: {}", v),
-            ResourceSizeNew(v) => write!(f, "ResourceSizeNew: {}", v),
-            ResourceSizeValid(v) => write!(f, "ResourceSizeValid: {}", v),
-            ResourceSizeMin(v) => write!(f, "ResourceSizeMin: {}", v),
-            ResourceSizeMax(v) => write!(f, "ResourceSizeMax: {}", v),
-            ResourceSizeGran(v) => write!(f, "ResourceSizeGran: {}", v),
-            ResourceUnit(v) => write!(f, "ResourceUnit: {}", v),
-            ResourceOcc(v) => write!(f, "ResourceOcc: {}", v),
-            DpipeTableResourceId(v) => write!(f, "DpipeTableResourceId: {}", v),
-            DpipeTableResourceUnit(v) => write!(f, "DpipeTableResourceUnit: {}", v),
-            PortFlavour(v) => write!(f, "PortFlavour: {}", v),
-            PortNumber(v) => write!(f, "PortNumber: {}", v),
-            ParamName(s) => write!(f, "ParamName: {}", s),
-            ParamGeneric(v) => write!(f, "ParamGeneric: {}", v),
-            ParamType(v) => write!(f, "ParamType: {}", v),
-            ParamValue(v) => write!(f, "ParamValue: {}", v),
-            ParamValueCmode(v) => write!(f, "ParamValueCmode: {}", v),
-            RegionName(s) => write!(f, "RegionName: {}", s),
-            RegionSize(v) => write!(f, "RegionSize: {}", v),
-            RegionSnapshotId(v) => write!(f, "RegionSnapshotId: {}", v),
-            RegionChunkData(v) => write!(f, "RegionChunkData: {:?}", v),
-            RegionChunkOffset(v) => write!(f, "RegionChunkOffset: {}", v),
-            RegionChunkSize(v) => write!(f, "RegionChunkSize: {}", v),
-            InfoDriverName(s) => write!(f, "InfoDriverName: {}", s),
-            InfoSerialNo(s) => write!(f, "InfoSerialNo: {}", s),
-            InfoVersionName(s) => write!(f, "InfoVersionName: {}", s),
-            InfoVersionValue(s) => write!(f, "InfoVersionValue: {}", s),
-            SbPoolCellSize(v) => write!(f, "SbPoolCellSize: {}", v),
-            FmsgObjNestStart(v) => write!(f, "FmsgObjNestStart: {}", v),
-            FmsgPairNestStart(v) => write!(f, "FmsgPairNestStart: {}", v),
-            FmsgArrNestStart(v) => write!(f, "FmsgArrNestStart: {}", v),
-            FmsgNestEnd(v) => write!(f, "FmsgNestEnd: {}", v),
-            FmsgObjName(s) => write!(f, "FmsgObjName: {}", s),
-            FmsgObjValueType(v) => write!(f, "FmsgObjValueType: {}", v),
-            HealthReporterName(s) => write!(f, "HealthReporterName: {}", s),
-            HealthReporterState(v) => write!(f, "HealthReporterState: {}", v),
-            HealthReporterErrCount(v) => write!(f, "HealthReporterErrCount: {}", v),
-            HealthReporterRecoverCount(v) => write!(f, "HealthReporterRecoverCount: {}", v),
-            HealthReporterDumpTs(v) => write!(f, "HealthReporterDumpTs: {}", v),
-            HealthReporterGracefulPeriod(v) => write!(f, "HealthReporterGracefulPeriod: {}", v),
-            HealthReporterAucoRecover(v) => write!(f, "HealthReporterAucoRecover: {}", v),
-            FlashUpdateFileName(s) => write!(f, "FlashUpdateFileName: {}", s),
-            FlashUpdateComponent(s) => write!(f, "FlashUpdateComponent: {}", s),
-            FlashUpdateStatusMsg(s) => write!(f, "FlashUpdateStatusMsg: {}", s),
-            FlashUpdateStatusTimeout(v) => write!(f, "FlashUpdateStatusTimeout: {}", v),
-            FlashUpdateOverWriteMask(v) => write!(f, "FlashUpdateOverWriteMask: {}", v),
-            ReloadAction(v) => write!(f, "ReloadAction: {}", v),
-            ReloadActionPerformed(v) => write!(f, "ReloadActionPerformed: {}", v),
-            ReloadLimits(v) => write!(f, "ReloadLimits: {}", v),
-            PortPciSfNo(v) => write!(f, "PortPciSfNo: {}", v),
-            RateType(v) => write!(f, "RateType: {}", v),
-            RateTxShare(v) => write!(f, "RateTxShare: {}", v),
-            RateTxMax(v) => write!(f, "RateTxMax: {}", v),
-            RateNodeName(s) => write!(f, "RateNodeName: {}", s),
-            RateParentNodeName(s) => write!(f, "RateParentNodeName: {}", s),
-            RegionMaxSnapshots(v) => write!(f, "RegionMaxSnapshots: {}", v),
-            FlashUpdateStatusDone(v) => write!(f, "FlashUpdateStatusDone: {}", v),
-            FlashUpdateStatusTotal(v) => write!(f, "FlashUpdateStatusTotal: {}", v),
-            PortPciPfNumber(v) => write!(f, "PortPciPfNumber: {}", v),
-            PortPciVfNumber(v) => write!(f, "PortPciVfNumber: {}", v),
-            TrapName(s) => write!(f, "TrapName: {}", s),
-            TrapAction(v) => write!(f, "TrapAction: {}", v),
-            TrapType(v) => write!(f, "TrapType: {}", v),
-            TrapGeneric(v) => write!(f, "TrapGeneric: {}", v),
-            TrapGroupName(s) => write!(f, "TrapGroupName: {}", s),
-            ReloadStatus(v) => write!(f, "ReloadStatus: {}", v),
-            HealthReporterDumpTsNs(v) => write!(f, "HealthReporterDumpTsNs: {}", v),
-            NetnsFd(v) => write!(f, "NetnsFd: {}", v),
-            NetnsPid(v) => write!(f, "NetnsPid: {}", v),
-            NetnsId(v) => write!(f, "NetnsId: {}", v),
-            HealthReporterAutoDump(v) => write!(f, "HealthReporterAutoDump: {}", v),
-            TrapPolicerId(v) => write!(f, "TrapPolicerId: {}", v),
-            TrapPolicerRate(v) => write!(f, "TrapPolicerRate: {}", v),
-            TrapPolicerBurst(v) => write!(f, "TrapPolicerBurst: {}", v),
-            InfoBoardSerialNumber(s) => write!(f, "InfoBoardSerialNumber: {}", s),
-            PortLanes(v) => write!(f, "PortLanes: {}", v),
-            PortSplittable(v) => write!(f, "PortSplittable: {}", v),
-            PortExternal(v) => write!(f, "PortExternal: {}", v),
-            PortControllerNo(v) => write!(f, "PortControllerNo: {}", v),
-            ReloadStatsLimit(v) => write!(f, "ReloadStatsLimit: {}", v),
-            ReloadStatsValue(v) => write!(f, "ReloadStatsValue: {}", v),
+            BusName(s) => write!(f, "BusName: {s}"),
+            Location(s) => write!(f, "Location: {s}"),
+            PortIndex(v) => write!(f, "PortIndex: {v}"),
+            PortType(v) => write!(f, "PortType: {v}"),
+            DesiredType(v) => write!(f, "DesiredType: {v}"),
+            NetdevIndex(v) => write!(f, "NetdevIndex: {v}"),
+            NetdevName(s) => write!(f, "NetdevName: {s}"),
+            PortIbdevName(s) => write!(f, "PortIbdevName: {s}"),
+            PortSplitCount(v) => write!(f, "PortSplitCount: {v}"),
+            PortSplitGroup(v) => write!(f, "PortSplitGroup: {v}"),
+            SbIndex(v) => write!(f, "SbIndex: {v}"),
+            SbSize(v) => write!(f, "SbSize: {v}"),
+            SbIngressPoolCount(v) => write!(f, "SbIngressPoolCount: {v}"),
+            SbEgressPoolCount(v) => write!(f, "SbEgressPoolCount: {v}"),
+            SbIngressTcCount(v) => write!(f, "SbIngressTcCount: {v}"),
+            SbEgressTcCount(v) => write!(f, "SbEgressTcCount: {v}"),
+            SbPoolIndex(v) => write!(f, "SbPoolIndex: {v}"),
+            SbPoolType(v) => write!(f, "SbPoolType: {v}"),
+            SbPoolSize(v) => write!(f, "SbPoolSize: {v}"),
+            SbPoolThresholdType(v) => write!(f, "SbPoolThresholdType: {v}"),
+            SbPoolThreshold(v) => write!(f, "SbPoolThreshold: {v}"),
+            SbTcIndex(v) => write!(f, "SbTcIndex: {v}"),
+            SbOccCur(v) => write!(f, "SbOccCur: {v}"),
+            SbOccMax(v) => write!(f, "SbOccMax: {v}"),
+            EswitchMode(v) => write!(f, "EswitchMode: {v}"),
+            EswitchInlineMode(v) => write!(f, "EswitchInlineMode: {v}"),
+            DpipeTableName(s) => write!(f, "DpipeTableName: {s}"),
+            DpipeTableSize(v) => write!(f, "DpipeTableSize: {v}"),
+            DpipeTableCountersEnabled(v) => write!(f, "DpipeTableCountersEnabled: {v}"),
+            DpipeEntryIndex(v) => write!(f, "DpipeEntryIndex: {v}"),
+            DpipeEntryCounter(v) => write!(f, "DpipeEntryCounter: {v}"),
+            DpipeMatchType(v) => write!(f, "DpipeMatchType: {v}"),
+            DpipeActionType(v) => write!(f, "DpipeActionType: {v}"),
+            DpipeValue(v) => write!(f, "DpipeValue: {v}"),
+            DpipeValueMask(v) => write!(f, "DpipeValueMask: {v}"),
+            DpipeValueMapping(v) => write!(f, "DpipeValueMapping: {v}"),
+            DpipeHeaderName(s) => write!(f, "DpipeHeaderName: {s}"),
+            DpipeHeaderId(v) => write!(f, "DpipeHeaderId: {v}"),
+            DpipeHeaderGlobal(v) => write!(f, "DpipeHeaderGlobal: {v}"),
+            DpipeHeaderIndex(v) => write!(f, "DpipeHeaderIndex: {v}"),
+            DpipeFieldName(s) => write!(f, "DpipeFieldName: {s}"),
+            DpipeFieldId(v) => write!(f, "DpipeFieldId: {v}"),
+            DpipeFieldBitwidth(v) => write!(f, "DpipeFieldBitwidth: {v}"),
+            DpipeFieldMappingType(v) => write!(f, "DpipeFieldMappingType: {v}"),
+            EswitchEncapMode(v) => write!(f, "EswitchEncapMode: {v}"),
+            ResoureceName(s) => write!(f, "ResoureceName: {s}"),
+            ResourceId(v) => write!(f, "ResourceId: {v}"),
+            ResourceSize(v) => write!(f, "ResourceSize: {v}"),
+            ResourceSizeNew(v) => write!(f, "ResourceSizeNew: {v}"),
+            ResourceSizeValid(v) => write!(f, "ResourceSizeValid: {v}"),
+            ResourceSizeMin(v) => write!(f, "ResourceSizeMin: {v}"),
+            ResourceSizeMax(v) => write!(f, "ResourceSizeMax: {v}"),
+            ResourceSizeGran(v) => write!(f, "ResourceSizeGran: {v}"),
+            ResourceUnit(v) => write!(f, "ResourceUnit: {v}"),
+            ResourceOcc(v) => write!(f, "ResourceOcc: {v}"),
+            DpipeTableResourceId(v) => write!(f, "DpipeTableResourceId: {v}"),
+            DpipeTableResourceUnit(v) => write!(f, "DpipeTableResourceUnit: {v}"),
+            PortFlavour(v) => write!(f, "PortFlavour: {v}"),
+            PortNumber(v) => write!(f, "PortNumber: {v}"),
+            ParamName(s) => write!(f, "ParamName: {s}"),
+            ParamGeneric(v) => write!(f, "ParamGeneric: {v}"),
+            ParamType(v) => write!(f, "ParamType: {v}"),
+            ParamValue(v) => write!(f, "ParamValue: {v}"),
+            ParamValueCmode(v) => write!(f, "ParamValueCmode: {v}"),
+            RegionName(s) => write!(f, "RegionName: {s}"),
+            RegionSize(v) => write!(f, "RegionSize: {v}"),
+            RegionSnapshotId(v) => write!(f, "RegionSnapshotId: {v}"),
+            RegionChunkData(v) => write!(f, "RegionChunkData: {v:?}"),
+            RegionChunkOffset(v) => write!(f, "RegionChunkOffset: {v}"),
+            RegionChunkSize(v) => write!(f, "RegionChunkSize: {v}"),
+            InfoDriverName(s) => write!(f, "InfoDriverName: {s}"),
+            InfoSerialNo(s) => write!(f, "InfoSerialNo: {s}"),
+            InfoVersionName(s) => write!(f, "InfoVersionName: {s}"),
+            InfoVersionValue(s) => write!(f, "InfoVersionValue: {s}"),
+            SbPoolCellSize(v) => write!(f, "SbPoolCellSize: {v}"),
+            FmsgObjNestStart(v) => write!(f, "FmsgObjNestStart: {v}"),
+            FmsgPairNestStart(v) => write!(f, "FmsgPairNestStart: {v}"),
+            FmsgArrNestStart(v) => write!(f, "FmsgArrNestStart: {v}"),
+            FmsgNestEnd(v) => write!(f, "FmsgNestEnd: {v}"),
+            FmsgObjName(s) => write!(f, "FmsgObjName: {s}"),
+            FmsgObjValueType(v) => write!(f, "FmsgObjValueType: {v}"),
+            HealthReporterName(s) => write!(f, "HealthReporterName: {s}"),
+            HealthReporterState(v) => write!(f, "HealthReporterState: {v}"),
+            HealthReporterErrCount(v) => write!(f, "HealthReporterErrCount: {v}"),
+            HealthReporterRecoverCount(v) => write!(f, "HealthReporterRecoverCount: {v}"),
+            HealthReporterDumpTs(v) => write!(f, "HealthReporterDumpTs: {v}"),
+            HealthReporterGracefulPeriod(v) => write!(f, "HealthReporterGracefulPeriod: {v}"),
+            HealthReporterAucoRecover(v) => write!(f, "HealthReporterAucoRecover: {v}"),
+            FlashUpdateFileName(s) => write!(f, "FlashUpdateFileName: {s}"),
+            FlashUpdateComponent(s) => write!(f, "FlashUpdateComponent: {s}"),
+            FlashUpdateStatusMsg(s) => write!(f, "FlashUpdateStatusMsg: {s}"),
+            FlashUpdateStatusTimeout(v) => write!(f, "FlashUpdateStatusTimeout: {v}"),
+            FlashUpdateOverWriteMask(v) => write!(f, "FlashUpdateOverWriteMask: {v}"),
+            ReloadAction(v) => write!(f, "ReloadAction: {v}"),
+            ReloadActionPerformed(v) => write!(f, "ReloadActionPerformed: {v}"),
+            ReloadLimits(v) => write!(f, "ReloadLimits: {v}"),
+            PortPciSfNo(v) => write!(f, "PortPciSfNo: {v}"),
+            RateType(v) => write!(f, "RateType: {v}"),
+            RateTxShare(v) => write!(f, "RateTxShare: {v}"),
+            RateTxMax(v) => write!(f, "RateTxMax: {v}"),
+            RateNodeName(s) => write!(f, "RateNodeName: {s}"),
+            RateParentNodeName(s) => write!(f, "RateParentNodeName: {s}"),
+            RegionMaxSnapshots(v) => write!(f, "RegionMaxSnapshots: {v}"),
+            FlashUpdateStatusDone(v) => write!(f, "FlashUpdateStatusDone: {v}"),
+            FlashUpdateStatusTotal(v) => write!(f, "FlashUpdateStatusTotal: {v}"),
+            PortPciPfNumber(v) => write!(f, "PortPciPfNumber: {v}"),
+            PortPciVfNumber(v) => write!(f, "PortPciVfNumber: {v}"),
+            TrapName(s) => write!(f, "TrapName: {s}"),
+            TrapAction(v) => write!(f, "TrapAction: {v}"),
+            TrapType(v) => write!(f, "TrapType: {v}"),
+            TrapGeneric(v) => write!(f, "TrapGeneric: {v}"),
+            TrapGroupName(s) => write!(f, "TrapGroupName: {s}"),
+            ReloadStatus(v) => write!(f, "ReloadStatus: {v}"),
+            HealthReporterDumpTsNs(v) => write!(f, "HealthReporterDumpTsNs: {v}"),
+            NetnsFd(v) => write!(f, "NetnsFd: {v}"),
+            NetnsPid(v) => write!(f, "NetnsPid: {v}"),
+            NetnsId(v) => write!(f, "NetnsId: {v}"),
+            HealthReporterAutoDump(v) => write!(f, "HealthReporterAutoDump: {v}"),
+            TrapPolicerId(v) => write!(f, "TrapPolicerId: {v}"),
+            TrapPolicerRate(v) => write!(f, "TrapPolicerRate: {v}"),
+            TrapPolicerBurst(v) => write!(f, "TrapPolicerBurst: {v}"),
+            InfoBoardSerialNumber(s) => write!(f, "InfoBoardSerialNumber: {s}"),
+            PortLanes(v) => write!(f, "PortLanes: {v}"),
+            PortSplittable(v) => write!(f, "PortSplittable: {v}"),
+            PortExternal(v) => write!(f, "PortExternal: {v}"),
+            PortControllerNo(v) => write!(f, "PortControllerNo: {v}"),
+            ReloadStatsLimit(v) => write!(f, "ReloadStatsLimit: {v}"),
+            ReloadStatsValue(v) => write!(f, "ReloadStatsValue: {v}"),
 
             RemoteReloadStats(v) |
             ReloadActionInfo(v) |
@@ -1487,13 +1487,12 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                     .context("invalid DEVLINK_ATTR_PORT_NUMBER value")?,
             ),
             DEVLINK_ATTR_PARAM => Self::Param({
-                let fixed = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_PARAM")?;
-                fixed
+                    .context("failed to parse DEVLINK_ATTR_PARAM")?
             }),
             DEVLINK_ATTR_PARAM_NAME => Self::ParamName(
                 parse_string(payload)
@@ -1502,37 +1501,31 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
             DEVLINK_ATTR_PARAM_GENERIC => Self::ParamGeneric({
                 let val = parse_u8(payload)
                     .context("invalid DEVLINK_ATTR_PARAM_GENERIC value")?;
-                if val == 0 {
-                    false
-                } else {
-                    true
-                }
+                val != 0
             }),
             DEVLINK_ATTR_PARAM_TYPE => Self::ParamType(
                 parse_u8(payload)
                     .context("invalid DEVLINK_ATTR_PARAM_TYPE value")?,
             ),
             DEVLINK_ATTR_PARAM_VALUES_LIST => Self::ParamValueList({
-                let fixed = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_PARAM_VALUE_LIST")?;
-                fixed
+                    .context("failed to parse DEVLINK_ATTR_PARAM_VALUE_LIST")?
             }),
             DEVLINK_ATTR_PARAM_VALUE => Self::ParamValue(
                 parse_u64(payload)
                     .context("invalid DEVLINK_ATTR_PARAM_VALUE value")?,
             ),
             DEVLINK_ATTR_PARAM_VALUE_DATA => Self::ParamValueData({
-                let fixed = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_REGION_CHUNK")?;
-                fixed
+                    .context("failed to parse DEVLINK_ATTR_REGION_CHUNK")?
             }),
             DEVLINK_ATTR_PARAM_VALUE_CMODE => Self::ParamValueCmode(
                 parse_u8(payload)
@@ -1547,44 +1540,40 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                     .context("invalid DEVLINK_ATTR_REGION_SIZE value")?,
             ),
             DEVLINK_ATTR_REGION_SNAPSHOTS => Self::RegionSnapshots({
-                let fixed = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_REGION_SNAPSHOTS")?;
-                fixed
+                    .context("failed to parse DEVLINK_ATTR_REGION_SNAPSHOTS")?
             }),
             DEVLINK_ATTR_REGION_SNAPSHOT => Self::RegionSnapshot({
-                let fixed = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_REGION_CHUNK")?;
-                fixed
+                    .context("failed to parse DEVLINK_ATTR_REGION_CHUNK")?
             }),
             DEVLINK_ATTR_REGION_SNAPSHOT_ID => Self::RegionSnapshotId(
                 parse_u32(payload)
                     .context("invalid DEVLINK_ATTR_REGION_SNAPSHOT_ID value")?,
             ),
             DEVLINK_ATTR_REGION_CHUNKS => Self::RegionChunks({
-                let fixed = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_REGION_CHUNKS")?;
-                fixed
+                    .context("failed to parse DEVLINK_ATTR_REGION_CHUNKS")?
             }),
             DEVLINK_ATTR_REGION_CHUNK => Self::RegionChunk({
-                let fixed = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_REGION_CHUNK")?;
-                fixed
+                    .context("failed to parse DEVLINK_ATTR_REGION_CHUNK")?
             }),
             // DEVLINK_ATTR_REGION_CHUNK_DATA => Self::RegionChunkData(_),
             DEVLINK_ATTR_REGION_CHUNK_ADDR => Self::RegionChunkOffset(
@@ -1600,37 +1589,34 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                     .context("invalid DEVLINK_ATTR_INFO_SERIAL_NUMBER value")?,
             ),
             DEVLINK_ATTR_INFO_VERSION_FIXED => Self::InfoVersionFixed({
-                let fixed = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
                     .context(
                         "failed to parse DEVLINK_ATTR_INFO_VERSION_FIXED",
-                    )?;
-                fixed
+                    )?
             }),
             DEVLINK_ATTR_INFO_VERSION_RUNNING => Self::InfoVersionRunning({
-                let running = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
                     .context(
                         "failed to parse DEVLINK_ATTR_INFO_VERSION_RUNNING",
-                    )?;
-                running
+                    )?
             }),
             DEVLINK_ATTR_INFO_VERSION_STORED => Self::InfoVersionStored({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
                     .context(
                         "failed to parse DEVLINK_ATTR_INFO_VERSION_STORED",
-                    )?;
-                stored
+                    )?
             }),
             DEVLINK_ATTR_INFO_VERSION_NAME => Self::InfoVersionName(
                 parse_string(payload)
@@ -1654,37 +1640,34 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                     .context("invalid DEVLINK_ATTR_RELOAD_ACTION value")?,
             ),
             DEVLINK_ATTR_DEV_STATS => Self::DevStats({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
                     .context(
                         "failed to parse DEVLINK_ATTR_DEV_STATS",
-                    )?;
-                stored
+                    )?
             }),
             DEVLINK_ATTR_RELOAD_STATS => Self::ReloadStats({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
                     .context(
                         "failed to parse DEVLINK_ATTR_RELOAD_STATS",
-                    )?;
-                stored
+                    )?
             }),
             DEVLINK_ATTR_RELOAD_STATS_ENTRY => Self::ReloadStatsEntry({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
                     .context(
                         "failed to parse DEVLINK_ATTR_RELOAD_STATS_ENTRY",
-                    )?;
-                stored
+                    )?
             }),
             DEVLINK_ATTR_RELOAD_STATS_LIMIT => Self::ReloadStatsLimit(
                 parse_u8(payload)
@@ -1695,37 +1678,34 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                     .context("invalid DEVLINK_ATTR_RELOAD_STATS_VALUE value")?,
             ),
             DEVLINK_ATTR_REMOTE_RELOAD_SATS => Self::RemoteReloadStats({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
                     .context(
                         "failed to parse DEVLINK_ATTR_REMOTE_RELOAD_SATS",
-                    )?;
-                stored
+                    )?
             }),
             DEVLINK_ATTR_RELOAD_ACTION_INFO => Self::ReloadActionInfo({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
                     .context(
                         "failed to parse DEVLINK_ATTR_RELOAD_ACTION_INFO",
-                    )?;
-                stored
+                    )?
             }),
             DEVLINK_ATTR_RELAOD_ACTION_STATS => Self::ReloadActionStats({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
                     .context(
                         "failed to parse DEVLINK_ATTR_RELAOD_ACTION_STATS",
-                    )?;
-                stored
+                    )?
             }),
             DEVLINK_ATTR_REGION_MAX_SNAPSHOTS => Self::RegionMaxSnapshots(
                 parse_u32(payload)
@@ -1740,13 +1720,12 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                     .context("invalid DEVLINK_ATTR_PORT_PCI_VF_NUMBER value")?,
             ),
             DEVLINK_ATTR_STATS => Self::Stats({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_STATS")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_STATS")?
             }),
             DEVLINK_ATTR_TRAP_NAME => Self::TrapName(
                 parse_string(payload)
@@ -1763,33 +1742,27 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
             DEVLINK_ATTR_TRAP_GENERIC => Self::TrapGeneric({
                 let val = parse_u8(payload)
                     .context("invalid DEVLINK_ATTR_TRAP_GENERIC value")?;
-                if val == 0 {
-                    false
-                } else {
-                    true
-                }
+                val != 0
             }),
             DEVLINK_ATTR_TRAP_METADATA => Self::TrapMetadata({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_TRAP_METADATA")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_TRAP_METADATA")?
             }),
             DEVLINK_ATTR_TRAP_GROUP_NAME => Self::TrapGroupName(
                 parse_string(payload)
                     .context("invalid DEVLINK_ATTR_TRAP_GROUP_NAME value")?,
             ),
             DEVLINK_ATTR_HEALTH_REPORTER => Self::HealthReporter({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_HEALTH_REPORTER")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_HEALTH_REPORTER")?
             }),
             DEVLINK_ATTR_HEALTH_REPORTER_NAME => Self::HealthReporterName(
                 parse_string(payload)
@@ -1840,13 +1813,12 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                     .context("invalid DEVLINK_ATTR_SB_POOL_CELL_SIZE value")?,
             ),
             DEVLINK_ATTR_FMSG => Self::Fmsg({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_FMSG")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_FMSG")?
             }),
             DEVLINK_ATTR_FMSG_OBJ_NEST_START => Self::FmsgObjNestStart(
                 parse_u8(payload)
@@ -1873,13 +1845,12 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                     .context("invalid DEVLINK_ATTR_FMSG_OBJ_VALUE_TYPE value")?,
             ),
             DEVLINK_ATTR_FMSG_OBJ_VALUE_DATA => Self::FmsgObjValueData({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_FMSG_OBJ_VALUE_DATA")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_FMSG_OBJ_VALUE_DATA")?
             }),
             DEVLINK_ATTR_HEALTH_REPORTER_DUMP_TS_NS => Self::HealthReporterDumpTsNs(
                 parse_u64(payload)
@@ -1914,13 +1885,12 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                     .context("invalid DEVLINK_ATTR_TRAP_POLICER_BURST value")?,
             ),
             DEVLINK_ATTR_PORT_FUNCTION => Self::PortFunction({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_PORT_FUNCTION")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_PORT_FUNCTION")?
             }),
             DEVLINK_ATTR_INFO_BOARD_SERIAL_NUMBER => Self::InfoBoardSerialNumber(
                 parse_string(payload)
@@ -2055,22 +2025,20 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                     .context("invalid DEVLINK_ATTR_ESWITCH_INLINE_MODE value")?,
             ),
             DEVLINK_ATTR_DPIPE_TABLES => Self::DpipeTables({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_DPIPE_TABLES")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_DPIPE_TABLES")?
             }),
             DEVLINK_ATTR_DPIPE_TABLE => Self::DpipeTable({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_DPIPE_TABLE")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_DPIPE_TABLE")?
             }),
             DEVLINK_ATTR_DPIPE_TABLE_NAME => Self::DpipeTableName(
                 parse_string(payload)
@@ -2081,66 +2049,60 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                     .context("invalid DEVLINK_ATTR_DPIPE_TABLE_SIZE value")?,
             ),
             DEVLINK_ATTR_DPIPE_TABLE_MATCHES => Self::DpipeTableMatches({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_DPIPE_TABLE_MATCHES")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_DPIPE_TABLE_MATCHES")?
             }),
             DEVLINK_ATTR_DPIPE_TABLE_ACTIONS => Self::DpipeTableActions({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_DPIPE_TABLE_ACTIONS")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_DPIPE_TABLE_ACTIONS")?
             }),
             DEVLINK_ATTR_DPIPE_TABLE_COUNTERS_ENABLED => Self::DpipeTableCountersEnabled(
                 parse_u8(payload)
                     .context("invalid DEVLINK_ATTR_DPIPE_TABLE_COUNTERS_ENABLED value")?,
             ),
             DEVLINK_ATTR_DPIPE_ENTRIES => Self::DpipeEntries({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_DPIPE_ENTRIES")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_DPIPE_ENTRIES")?
             }),
             DEVLINK_ATTR_DPIPE_ENTRY => Self::DpipeEntry({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_DPIPE_ENTRY")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_DPIPE_ENTRY")?
             }),
             DEVLINK_ATTR_DPIPE_ENTRY_INDEX => Self::DpipeEntryIndex(
                 parse_u64(payload)
                     .context("invalid DEVLINK_ATTR_DPIPE_ENTRY_INDEX value")?,
             ),
             DEVLINK_ATTR_DPIPE_ENTRY_MATCH_VALUES => Self::DpipeEntryMatchValues({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_DPIPE_ENTRY_MATCH_VALUES")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_DPIPE_ENTRY_MATCH_VALUES")?
             }),
             DEVLINK_ATTR_DPIPE_ENTRY_ACTION_VALUES => Self::DpipeEntryActionValues({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_DPIPE_ENTRY_ACTION_VALUES")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_DPIPE_ENTRY_ACTION_VALUES")?
             }),
             DEVLINK_ATTR_DPIPE_ENTRY_COUNTER => Self::DpipeEntryCounter(
                 parse_u64(payload)
@@ -2151,50 +2113,46 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                     .context("invalid DEVLINK_ATTR_DPIPE_MATCH_TYPE value")?,
             ),
             DEVLINK_ATTR_DPIPE_MATCH_VALUE => Self::DpipeMatchValue({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_DPIPE_MATCH_VALUE")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_DPIPE_MATCH_VALUE")?
             }),
             DEVLINK_ATTR_DPIPE_ACTION => Self::DpipeAction({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_DPIPE_ACTION")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_DPIPE_ACTION")?
             }),
             DEVLINK_ATTR_DPIPE_ACTION_TYPE => Self::DpipeActionType(
                 parse_u32(payload)
                     .context("invalid DEVLINK_ATTR_DPIPE_ACTION_TYPE value")?,
             ),
             DEVLINK_ATTR_DPIPE_ACTION_VALUE => Self::DpipeActionValue({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
                     .context(
                         "failed to parse DEVLINK_ATTR_DPIPE_TABLE_COUNTERS",
-                    )?;
-                stored
+                    )?
             }),
             DEVLINK_ATTR_PORT_IBDEV_NAME => Self::PortIbdevName(
                 parse_string(payload)
                     .context("invalid DEVLINK_ATTR_PORT_IBDEV_NAME value")?,
             ),
             DEVLINK_ATTR_DPIPE_MATCH => Self::DpipeMatch({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_DPIPE_MATCH")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_DPIPE_MATCH")?
             }),
             DEVLINK_ATTR_DPIPE_VALUE => Self::DpipeValue(
                 parse_u32(payload)
@@ -2209,22 +2167,20 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                     .context("invalid DEVLINK_ATTR_DPIPE_VALUE_MAPPING value")?,
             ),
             DEVLINK_ATTR_DPIPE_HEADERS => Self::DpipeHeaders({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_DPIPE_HEADERS")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_DPIPE_HEADERS")?
             }),
             DEVLINK_ATTR_DPIPE_HEADER => Self::DpipeHader({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| {
                         nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla))
                     })
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_DPIPE_HEADER")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_DPIPE_HEADER")?
             }),
             DEVLINK_ATTR_DPIPE_HEADER_NAME => Self::DpipeHeaderName(
                 parse_string(payload)
@@ -2235,11 +2191,10 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                     .context("invalid DEVLINK_ATTR_DPIPE_HEADER_ID value")?,
             ),
             DEVLINK_ATTR_DPIPE_HEADER_FIELDS => Self::DpipeHeaderFields({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla)))
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_DPIPE_HEADER_FIELDS")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_DPIPE_HEADER_FIELDS")?
             }),
             DEVLINK_ATTR_DPIPE_HEADER_GLOBAL => Self::DpipeHeaderGlobal(
                 parse_u8(payload)
@@ -2250,11 +2205,10 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                     .context("invalid DEVLINK_ATTR_DPIPE_HEADER_INDEX value")?,
             ),
             DEVLINK_ATTR_DPIPE_FIELD => Self::DpipeField({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla)))
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_DPIPE_FIELD")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_DPIPE_FIELD")?
             }),
             DEVLINK_ATTR_DPIPE_FIELD_NAME => Self::DpipeFieldName(
                 parse_string(payload)
@@ -2277,18 +2231,16 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                     .context("invalid DEVLINK_ATTR_ESWITCH_ENCAP_MODE value")?,
             ),
             DEVLINK_ATTR_RESOURCE_LIST => Self::ResourceList({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla)))
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_RESOURCE_LIST")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_RESOURCE_LIST")?
             }),
             DEVLINK_ATTR_RESOURCE => Self::Resource({
-                let stored = NlasIterator::new(payload)
+                NlasIterator::new(payload)
                     .map(|nla| nla.and_then(|nla| GenlDevlinkAttrs::parse(&nla)))
                     .collect::<Result<Vec<_>, _>>()
-                    .context("failed to parse DEVLINK_ATTR_RESOURCE")?;
-                stored
+                    .context("failed to parse DEVLINK_ATTR_RESOURCE")?
             }),
             DEVLINK_ATTR_RESOURCE_NAME => Self::ResoureceName(
                 parse_string(payload)
