@@ -28,11 +28,11 @@ fn main() {
 
     socket.send(&txbuf, 0).unwrap();
 
-    let mut rxbuf = Vec::with_capacity(4096);
+    let mut rxbuf = Vec::with_capacity(8192);
     let mut offset = 0;
-
+    let mut size = 0;
     'outer: loop {
-        let size = socket.recv(&mut rxbuf, 0).unwrap();
+        size += socket.recv(&mut rxbuf, 0).unwrap();
 
         loop {
             let buf = &rxbuf[offset..];
@@ -56,7 +56,6 @@ fn main() {
 
             offset += msg.header.length as usize;
             if offset == size || msg.header.length == 0 {
-                offset = 0;
                 break;
             }
         }
