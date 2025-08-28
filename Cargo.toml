@@ -1,8 +1,8 @@
 [package]
 name = "netlink-packet-generic"
-version = "0.3.3"
+version = "0.4.0"
 authors = ["Leo <leo881003@gmail.com>"]
-edition = "2018"
+edition = "2021"
 homepage = "https://github.com/rust-netlink/netlink-packet-generic"
 repository = "https://github.com/rust-netlink/netlink-packet-generic"
 keywords = ["netlink", "linux"]
