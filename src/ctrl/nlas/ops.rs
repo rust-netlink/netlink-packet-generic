@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: MIT
 
 use crate::constants::*;
-use anyhow::Context;
-use byteorder::{ByteOrder, NativeEndian};
-use netlink_packet_utils::{
-    nla::{Nla, NlaBuffer},
-    parsers::*,
-    traits::*,
-    DecodeError,
+use netlink_packet_core::{
+    emit_u32, parse_u32, DecodeError, Emitable, ErrorContext, Nla, NlaBuffer,
+    Parseable,
 };
 use std::{mem::size_of_val, ops::Deref};
 
@@ -82,8 +78,8 @@ impl Nla for OpAttrs {
     fn emit_value(&self, buffer: &mut [u8]) {
         use OpAttrs::*;
         match self {
-            Id(v) => NativeEndian::write_u32(buffer, *v),
-            Flags(v) => NativeEndian::write_u32(buffer, *v),
+            Id(v) => emit_u32(buffer, *v).unwrap(),
+            Flags(v) => emit_u32(buffer, *v).unwrap(),
         }
     }
 }

@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: MIT
 
 use crate::constants::*;
-use anyhow::Context;
-use byteorder::{ByteOrder, NativeEndian};
-use netlink_packet_utils::{
-    nla::{Nla, NlaBuffer},
-    parsers::*,
-    traits::*,
-    DecodeError,
+use netlink_packet_core::{
+    emit_u32, parse_string, parse_u32, DecodeError, Emitable, ErrorContext,
+    Nla, NlaBuffer, Parseable,
 };
 use std::{mem::size_of_val, ops::Deref};
 
@@ -67,7 +63,7 @@ impl Nla for McastGrpAttrs {
     fn value_len(&self) -> usize {
         use McastGrpAttrs::*;
         match self {
-            Name(s) => s.as_bytes().len() + 1,
+            Name(s) => s.len() + 1,
             Id(v) => size_of_val(v),
         }
     }
@@ -87,7 +83,7 @@ impl Nla for McastGrpAttrs {
                 buffer[..s.len()].copy_from_slice(s.as_bytes());
                 buffer[s.len()] = 0;
             }
-            Id(v) => NativeEndian::write_u32(buffer, *v),
+            Id(v) => emit_u32(buffer, *v).unwrap(),
         }
     }
 }

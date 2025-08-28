@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: MIT
 
 use crate::constants::*;
-use anyhow::Context;
-use byteorder::{ByteOrder, NativeEndian};
-use netlink_packet_utils::{
-    nla::{Nla, NlaBuffer, NlasIterator},
-    parsers::*,
-    traits::*,
-    DecodeError,
+use netlink_packet_core::{
+    emit_u32, parse_u32, DecodeError, Emitable, ErrorContext, Nla, NlaBuffer,
+    NlasIterator, Parseable,
 };
 use std::mem::size_of_val;
 
@@ -76,8 +72,8 @@ impl Nla for OppolicyIndexAttr {
     fn emit_value(&self, buffer: &mut [u8]) {
         use OppolicyIndexAttr::*;
         match self {
-            Do(v) => NativeEndian::write_u32(buffer, *v),
-            Dump(v) => NativeEndian::write_u32(buffer, *v),
+            Do(v) => emit_u32(buffer, *v).unwrap(),
+            Dump(v) => emit_u32(buffer, *v).unwrap(),
         }
     }
 }

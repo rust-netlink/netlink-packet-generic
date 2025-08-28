@@ -7,8 +7,10 @@
 
 use self::nlas::*;
 use crate::{constants::*, traits::*, GenlHeader};
-use anyhow::Context;
-use netlink_packet_utils::{nla::NlasIterator, traits::*, DecodeError};
+use netlink_packet_core::{
+    DecodeError, Emitable, ErrorContext, NlasIterator, Parseable,
+    ParseableParametrized,
+};
 use std::convert::{TryFrom, TryInto};
 
 /// Netlink attributes for this family

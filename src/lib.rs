@@ -25,11 +25,11 @@
 //! serialization process including its specific header (if any) and the netlink
 //! attributes.
 //!
-//! To achieve this, you should implement [`netlink_packet_utils::Emitable`]
+//! To achieve this, you should implement [`netlink_packet_core::Emitable`]
 //! trait for the payload type.
 //!
-//! For deserialization, [`netlink_packet_utils::ParseableParametrized<[u8],
-//! GenlHeader>`](netlink_packet_utils::ParseableParametrized) trait should be
+//! For deserialization, [`netlink_packet_core::ParseableParametrized<[u8],
+//! GenlHeader>`](netlink_packet_core::ParseableParametrized) trait should be
 //! implemented. As mention above, to provide more scalability, we use the
 //! simplest buffer type: `[u8]` here. You can turn it into other buffer type
 //! easily during deserializing.
@@ -68,7 +68,7 @@
 //! the header data structure in your payload type and handle the serialization.
 
 #[macro_use]
-extern crate netlink_packet_utils;
+extern crate netlink_packet_core;
 
 pub mod buffer;
 pub use self::buffer::GenlBuffer;
