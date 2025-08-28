@@ -1,18 +1,11 @@
 // SPDX-License-Identifier: MIT
 
 use crate::constants::*;
-use anyhow::Context;
-use byteorder::{ByteOrder, NativeEndian};
-use netlink_packet_utils::{
-    nla::{Nla, NlaBuffer, NlasIterator},
-    parsers::*,
-    traits::*,
-    DecodeError,
+use netlink_packet_core::{
+    emit_i64, emit_u32, emit_u64, parse_i64, parse_u32, parse_u64, DecodeError,
+    Emitable, ErrorContext, Nla, NlaBuffer, NlasIterator, Parseable,
 };
-use std::{
-    convert::TryFrom,
-    mem::{size_of, size_of_val},
-};
+use std::{convert::TryFrom, mem::size_of_val};
 
 // PolicyAttr
 
@@ -150,17 +143,17 @@ impl Nla for NlPolicyTypeAttrs {
     fn emit_value(&self, buffer: &mut [u8]) {
         use NlPolicyTypeAttrs::*;
         match self {
-            Type(v) => NativeEndian::write_u32(buffer, u32::from(*v)),
-            MinValueSigned(v) => NativeEndian::write_i64(buffer, *v),
-            MaxValueSigned(v) => NativeEndian::write_i64(buffer, *v),
-            MaxValueUnsigned(v) => NativeEndian::write_u64(buffer, *v),
-            MinValueUnsigned(v) => NativeEndian::write_u64(buffer, *v),
-            MinLength(v) => NativeEndian::write_u32(buffer, *v),
-            MaxLength(v) => NativeEndian::write_u32(buffer, *v),
-            PolicyIdx(v) => NativeEndian::write_u32(buffer, *v),
-            PolicyMaxType(v) => NativeEndian::write_u32(buffer, *v),
-            Bitfield32Mask(v) => NativeEndian::write_u32(buffer, *v),
-            Mask(v) => NativeEndian::write_u64(buffer, *v),
+            Type(v) => emit_u32(buffer, u32::from(*v)).unwrap(),
+            MinValueSigned(v) => emit_i64(buffer, *v).unwrap(),
+            MaxValueSigned(v) => emit_i64(buffer, *v).unwrap(),
+            MaxValueUnsigned(v) => emit_u64(buffer, *v).unwrap(),
+            MinValueUnsigned(v) => emit_u64(buffer, *v).unwrap(),
+            MinLength(v) => emit_u32(buffer, *v).unwrap(),
+            MaxLength(v) => emit_u32(buffer, *v).unwrap(),
+            PolicyIdx(v) => emit_u32(buffer, *v).unwrap(),
+            PolicyMaxType(v) => emit_u32(buffer, *v).unwrap(),
+            Bitfield32Mask(v) => emit_u32(buffer, *v).unwrap(),
+            Mask(v) => emit_u64(buffer, *v).unwrap(),
         }
     }
 }
@@ -295,12 +288,4 @@ impl TryFrom<u32> for NlaType {
             }
         })
     }
-}
-
-// FIXME: Add this into netlink_packet_utils::parser
-fn parse_i64(payload: &[u8]) -> Result<i64, DecodeError> {
-    if payload.len() != size_of::<i64>() {
-        return Err(format!("invalid i64: {payload:?}").into());
-    }
-    Ok(NativeEndian::read_i64(payload))
 }

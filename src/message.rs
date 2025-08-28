@@ -4,9 +4,9 @@
 
 use crate::{buffer::GenlBuffer, header::GenlHeader, traits::*};
 use netlink_packet_core::{
-    NetlinkDeserializable, NetlinkHeader, NetlinkPayload, NetlinkSerializable,
+    DecodeError, Emitable, NetlinkDeserializable, NetlinkHeader,
+    NetlinkPayload, NetlinkSerializable, ParseableParametrized,
 };
-use netlink_packet_utils::{DecodeError, Emitable, ParseableParametrized};
 use std::fmt::Debug;
 
 #[cfg(doc)]

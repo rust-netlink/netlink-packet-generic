@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: MIT
 
 use crate::constants::*;
-use anyhow::Context;
-use byteorder::{ByteOrder, NativeEndian};
-use netlink_packet_utils::{
-    nla::{Nla, NlaBuffer, NlasIterator},
-    parsers::*,
-    traits::*,
-    DecodeError,
+use netlink_packet_core::{
+    emit_u16, emit_u32, parse_string, parse_u16, parse_u32, DecodeError,
+    Emitable, ErrorContext, Nla, NlaBuffer, NlasIterator, Parseable,
 };
 use std::mem::size_of_val;
 
@@ -73,14 +69,14 @@ impl Nla for GenlCtrlAttrs {
     fn emit_value(&self, buffer: &mut [u8]) {
         use GenlCtrlAttrs::*;
         match self {
-            FamilyId(v) => NativeEndian::write_u16(buffer, *v),
+            FamilyId(v) => emit_u16(buffer, *v).unwrap(),
             FamilyName(s) => {
                 buffer[..s.len()].copy_from_slice(s.as_bytes());
                 buffer[s.len()] = 0;
             }
-            Version(v) => NativeEndian::write_u32(buffer, *v),
-            HdrSize(v) => NativeEndian::write_u32(buffer, *v),
-            MaxAttr(v) => NativeEndian::write_u32(buffer, *v),
+            Version(v) => emit_u32(buffer, *v).unwrap(),
+            HdrSize(v) => emit_u32(buffer, *v).unwrap(),
+            MaxAttr(v) => emit_u32(buffer, *v).unwrap(),
             Ops(nlas) => {
                 OpList::from(nlas).as_slice().emit(buffer);
             }
@@ -89,7 +85,7 @@ impl Nla for GenlCtrlAttrs {
             }
             Policy(nla) => nla.emit_value(buffer),
             OpPolicy(nla) => nla.emit_value(buffer),
-            Op(v) => NativeEndian::write_u32(buffer, *v),
+            Op(v) => emit_u32(buffer, *v).unwrap(),
         }
     }
 }
