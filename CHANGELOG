@@ -1,4 +1,15 @@
 # Changelog
+## [0.4.0] - 2025-08-27
+### Breaking changes
+ - Use `netlink-packet-core 0.8`. No API changed, just bump version
+   forcing manual intervention on all dependency chain update. (4f5da61)
+
+### New features
+ - N/A
+
+### Bug fixes
+ - N/A
+
 ## [0.3.3] - 2023-07-09
 ### Breaking changes
  - N/A
