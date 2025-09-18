@@ -166,6 +166,7 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
     }
 }
 
+#[cfg(target_endian = "little")]
 #[cfg(test)]
 mod tests {
     use super::*;

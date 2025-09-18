@@ -7,6 +7,7 @@ use netlink_packet_generic::{
 };
 use netlink_sys::{protocols::NETLINK_GENERIC, Socket, SocketAddr};
 
+#[cfg(not(target_arch = "s390x"))]
 #[test]
 fn query_family_id() {
     let mut socket = Socket::new(NETLINK_GENERIC).unwrap();
