@@ -67,12 +67,6 @@
 //! If you are implementing such a generic family, note that you should define
 //! the header data structure in your payload type and handle the serialization.
 
-#[macro_use]
-extern crate netlink_packet_core;
-
-pub mod buffer;
-pub use self::buffer::GenlBuffer;
-
 pub mod constants;
 
 pub mod ctrl;

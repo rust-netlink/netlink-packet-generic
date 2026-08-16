@@ -12,6 +12,7 @@ description = "generic netlink packet types"
 
 [dependencies]
 netlink-packet-core = { version = "0.8.0" }
+zerocopy = { version = "0.8", features = ["derive"] }
 
 [dev-dependencies]
 netlink-sys = { version = "0.8.3" }

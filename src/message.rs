@@ -2,7 +2,7 @@
 
 //! Message definition and method implementations
 
-use crate::{buffer::GenlBuffer, header::GenlHeader, traits::*};
+use crate::{constants::GENL_HDRLEN, header::GenlHeader, traits::*};
 use netlink_packet_core::{
     DecodeError, Emitable, NetlinkDeserializable, NetlinkHeader,
     NetlinkPayload, NetlinkSerializable, ParseableParametrized,
@@ -171,8 +171,25 @@ where
         header: &NetlinkHeader,
         payload: &[u8],
     ) -> Result<Self, Self::Error> {
-        let buffer = GenlBuffer::new_checked(payload)?;
-        GenlMessage::parse_with_param(&buffer, header.message_type)
+        GenlMessage::parse_with_param(payload, header.message_type)
+    }
+}
+
+impl<F> ParseableParametrized<[u8], u16> for GenlMessage<F>
+where
+    F: ParseableParametrized<[u8], GenlHeader> + Debug,
+{
+    fn parse_with_param(
+        buf: &[u8],
+        message_type: u16,
+    ) -> Result<Self, DecodeError> {
+        let header = GenlHeader::parse(buf)?;
+        let payload_buf = &buf[GENL_HDRLEN..];
+        Ok(GenlMessage::new(
+            header,
+            F::parse_with_param(payload_buf, header)?,
+            message_type,
+        ))
     }
 }
 
