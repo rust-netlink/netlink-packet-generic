@@ -15,4 +15,4 @@ netlink-packet-core = { version = "0.9.0" }
 zerocopy = { version = "0.8", features = ["derive"] }
 
 [dev-dependencies]
-netlink-sys = { version = "0.8.3" }
+netlink-sys = { version = "0.9" }
