@@ -2,10 +2,10 @@
 
 use crate::constants::*;
 use netlink_packet_core::{
-    emit_u16, emit_u32, parse_string, parse_u16, parse_u32, DecodeError,
-    Emitable, ErrorContext, Nla, NlaBuffer, NlasIterator, Parseable,
+    append_u16, append_u32, emit_nlas_into, parse_string, parse_u16, parse_u32,
+    DecodeError, EncodeError, ErrorContext, Nla, NlaBuffer, NlasIterator,
+    Parseable,
 };
-use std::mem::size_of_val;
 
 mod mcast;
 mod oppolicy;
@@ -32,22 +32,28 @@ pub enum GenlCtrlAttrs {
 }
 
 impl Nla for GenlCtrlAttrs {
-    fn value_len(&self) -> usize {
+    fn emit_value_into(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
         use GenlCtrlAttrs::*;
         match self {
-            FamilyId(v) => size_of_val(v),
-            FamilyName(s) => s.len() + 1,
-            Version(v) => size_of_val(v),
-            HdrSize(v) => size_of_val(v),
-            MaxAttr(v) => size_of_val(v),
-            Ops(nlas) => OpList::from(nlas).as_slice().buffer_len(),
-            McastGroups(nlas) => {
-                McastGroupList::from(nlas).as_slice().buffer_len()
+            FamilyId(v) => append_u16(out, *v),
+            FamilyName(s) => {
+                out.extend_from_slice(s.as_bytes());
+                out.push(0);
             }
-            Policy(nla) => nla.buffer_len(),
-            OpPolicy(nla) => nla.buffer_len(),
-            Op(v) => size_of_val(v),
+            Version(v) => append_u32(out, *v),
+            HdrSize(v) => append_u32(out, *v),
+            MaxAttr(v) => append_u32(out, *v),
+            Ops(nlas) => {
+                emit_nlas_into(OpList::from(nlas).as_slice(), out)?;
+            }
+            McastGroups(nlas) => {
+                emit_nlas_into(McastGroupList::from(nlas).as_slice(), out)?;
+            }
+            Policy(nla) => nla.emit_nla_into(out)?,
+            OpPolicy(nla) => nla.emit_nla_into(out)?,
+            Op(v) => append_u32(out, *v),
         }
+        Ok(())
     }
 
     fn kind(&self) -> u16 {
@@ -63,29 +69,6 @@ impl Nla for GenlCtrlAttrs {
             Policy(_) => CTRL_ATTR_POLICY,
             OpPolicy(_) => CTRL_ATTR_OP_POLICY,
             Op(_) => CTRL_ATTR_OP,
-        }
-    }
-
-    fn emit_value(&self, buffer: &mut [u8]) {
-        use GenlCtrlAttrs::*;
-        match self {
-            FamilyId(v) => emit_u16(buffer, *v).unwrap(),
-            FamilyName(s) => {
-                buffer[..s.len()].copy_from_slice(s.as_bytes());
-                buffer[s.len()] = 0;
-            }
-            Version(v) => emit_u32(buffer, *v).unwrap(),
-            HdrSize(v) => emit_u32(buffer, *v).unwrap(),
-            MaxAttr(v) => emit_u32(buffer, *v).unwrap(),
-            Ops(nlas) => {
-                OpList::from(nlas).as_slice().emit(buffer);
-            }
-            McastGroups(nlas) => {
-                McastGroupList::from(nlas).as_slice().emit(buffer);
-            }
-            Policy(nla) => nla.emit_value(buffer),
-            OpPolicy(nla) => nla.emit_value(buffer),
-            Op(v) => emit_u32(buffer, *v).unwrap(),
         }
     }
 }
@@ -230,10 +213,10 @@ mod tests {
             b'g', b'r', b'o', b'u', b'p', b'2', 0, // Name
             0, // padding
         ];
-        let mut buf = vec![0u8; 100];
-        mcast_attr.emit(&mut buf);
+        let mut buf = Vec::new();
+        mcast_attr.emit_nla_into(&mut buf).unwrap();
 
-        assert_eq!(&expected_bytes[..], &buf[..expected_bytes.len()]);
+        assert_eq!(buf, expected_bytes);
     }
 
     #[test]
@@ -285,9 +268,9 @@ mod tests {
             2, 0, // Flags kind
             33, 0, 0, 0, // Flags
         ];
-        let mut buf = vec![0u8; 100];
-        ops.emit(&mut buf);
+        let mut buf = Vec::new();
+        ops.emit_nla_into(&mut buf).unwrap();
 
-        assert_eq!(&expected_bytes[..], &buf[..expected_bytes.len()]);
+        assert_eq!(buf, expected_bytes);
     }
 }

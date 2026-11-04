@@ -4,9 +4,10 @@
 
 use crate::{constants::GENL_HDRLEN, header::GenlHeader, traits::*};
 use netlink_packet_core::{
-    DecodeError, Emitable, NetlinkDeserializable, NetlinkHeader,
-    NetlinkPayload, NetlinkSerializable, ParseableParametrized,
+    DecodeError, NetlinkDeserializable, NetlinkHeader, NetlinkPayload,
+    ParseableParametrized,
 };
+
 use std::fmt::Debug;
 
 #[cfg(doc)]
@@ -105,8 +106,8 @@ where
     /// - Fill the command and version number into the header
     ///
     /// If you are not 100% sure the header is correct, this method should be
-    /// called before calling [`Emitable::emit()`], as it could get error
-    /// result if the header is inconsistent with the message.
+    /// called before calling [`Emitable::emit_into()`], as it could get an
+    /// error if the header is inconsistent with the message.
     pub fn finalize(&mut self) {
         self.header.cmd = self.payload.command();
         self.header.version = self.payload.version();
@@ -129,36 +130,26 @@ where
     }
 }
 
-impl<F> Emitable for GenlMessage<F>
+impl<F> ::netlink_packet_core::Emitable for GenlMessage<F>
 where
-    F: GenlFamily + Emitable + Debug,
+    F: GenlFamily + ::netlink_packet_core::Emitable + Debug,
 {
-    fn buffer_len(&self) -> usize {
-        self.header.buffer_len() + self.payload.buffer_len()
-    }
-
-    fn emit(&self, buffer: &mut [u8]) {
-        self.header.emit(buffer);
-
-        let buffer = &mut buffer[self.header.buffer_len()..];
-        self.payload.emit(buffer);
+    fn emit_into(
+        &self,
+        out: &mut Vec<u8>,
+    ) -> Result<(), ::netlink_packet_core::EncodeError> {
+        ::netlink_packet_core::Emitable::emit_into(&self.header, out)?;
+        ::netlink_packet_core::Emitable::emit_into(&self.payload, out)?;
+        Ok(())
     }
 }
 
-impl<F> NetlinkSerializable for GenlMessage<F>
+impl<F> ::netlink_packet_core::NetlinkSerializable for GenlMessage<F>
 where
-    F: GenlFamily + Emitable + Debug,
+    F: GenlFamily + ::netlink_packet_core::Emitable + Debug,
 {
     fn message_type(&self) -> u16 {
         self.family_id()
-    }
-
-    fn buffer_len(&self) -> usize {
-        <Self as Emitable>::buffer_len(self)
-    }
-
-    fn serialize(&self, buffer: &mut [u8]) {
-        self.emit(buffer)
     }
 }
 

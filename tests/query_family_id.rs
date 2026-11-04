@@ -21,11 +21,10 @@ fn query_family_id() {
     genlmsg.finalize();
     let mut nlmsg = NetlinkMessage::from(genlmsg);
     nlmsg.header.flags = NLM_F_REQUEST;
-    nlmsg.finalize();
 
-    println!("Buffer length: {}", nlmsg.buffer_len());
-    let mut txbuf = vec![0u8; nlmsg.buffer_len()];
-    nlmsg.serialize(&mut txbuf);
+    let mut txbuf = Vec::new();
+    nlmsg.serialize_into(&mut txbuf).unwrap();
+    println!("Buffer length: {}", txbuf.len());
 
     socket.send(&txbuf, 0).unwrap();
 

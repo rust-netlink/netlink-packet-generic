@@ -2,11 +2,13 @@
 
 use crate::constants::*;
 use netlink_packet_core::{
-    emit_u32, parse_string, parse_u32, DecodeError, Emitable, ErrorContext,
-    Nla, NlaBuffer, Parseable,
+    append_u32, emit_nlas_into, parse_string, parse_u32, DecodeError,
+    EncodeError, ErrorContext, Nla, NlaBuffer, Parseable,
 };
-use std::{mem::size_of_val, ops::Deref};
 
+use std::ops::Deref;
+
+#[allow(dead_code)]
 pub(crate) struct McastGroupList(Vec<McastGroup>);
 
 impl Deref for McastGroupList {
@@ -40,16 +42,12 @@ pub struct McastGroup {
 }
 
 impl Nla for McastGroup {
-    fn value_len(&self) -> usize {
-        self.nlas.as_slice().buffer_len()
+    fn emit_value_into(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
+        emit_nlas_into(&self.nlas, out)
     }
 
     fn kind(&self) -> u16 {
         self.index + 1
-    }
-
-    fn emit_value(&self, buffer: &mut [u8]) {
-        self.nlas.as_slice().emit(buffer);
     }
 }
 
@@ -60,12 +58,16 @@ pub enum McastGrpAttrs {
 }
 
 impl Nla for McastGrpAttrs {
-    fn value_len(&self) -> usize {
+    fn emit_value_into(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
         use McastGrpAttrs::*;
         match self {
-            Name(s) => s.len() + 1,
-            Id(v) => size_of_val(v),
+            Name(s) => {
+                out.extend_from_slice(s.as_bytes());
+                out.push(0);
+            }
+            Id(v) => append_u32(out, *v),
         }
+        Ok(())
     }
 
     fn kind(&self) -> u16 {
@@ -73,17 +75,6 @@ impl Nla for McastGrpAttrs {
         match self {
             Name(_) => CTRL_ATTR_MCAST_GRP_NAME,
             Id(_) => CTRL_ATTR_MCAST_GRP_ID,
-        }
-    }
-
-    fn emit_value(&self, buffer: &mut [u8]) {
-        use McastGrpAttrs::*;
-        match self {
-            Name(s) => {
-                buffer[..s.len()].copy_from_slice(s.as_bytes());
-                buffer[s.len()] = 0;
-            }
-            Id(v) => emit_u32(buffer, *v).unwrap(),
         }
     }
 }
