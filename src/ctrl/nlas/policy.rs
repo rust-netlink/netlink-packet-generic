@@ -2,10 +2,12 @@
 
 use crate::constants::*;
 use netlink_packet_core::{
-    emit_i64, emit_u32, emit_u64, parse_i64, parse_u32, parse_u64, DecodeError,
-    Emitable, ErrorContext, Nla, NlaBuffer, NlasIterator, Parseable,
+    append_i64, append_u32, append_u64, emit_nlas_into, parse_i64, parse_u32,
+    parse_u64, DecodeError, EncodeError, ErrorContext, Nla, NlaBuffer,
+    NlasIterator, Parseable,
 };
-use std::{convert::TryFrom, mem::size_of_val};
+
+use std::convert::TryFrom;
 
 // PolicyAttr
 
@@ -16,16 +18,12 @@ pub struct PolicyAttr {
 }
 
 impl Nla for PolicyAttr {
-    fn value_len(&self) -> usize {
-        self.attr_policy.buffer_len()
+    fn emit_value_into(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
+        self.attr_policy.emit_nla_into(out)
     }
 
     fn kind(&self) -> u16 {
         self.index
-    }
-
-    fn emit_value(&self, buffer: &mut [u8]) {
-        self.attr_policy.emit(buffer);
     }
 
     fn is_nested(&self) -> bool {
@@ -54,16 +52,12 @@ pub struct AttributePolicyAttr {
 }
 
 impl Nla for AttributePolicyAttr {
-    fn value_len(&self) -> usize {
-        self.policies.as_slice().buffer_len()
+    fn emit_value_into(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
+        emit_nlas_into(&self.policies, out)
     }
 
     fn kind(&self) -> u16 {
         self.index
-    }
-
-    fn emit_value(&self, buffer: &mut [u8]) {
-        self.policies.as_slice().emit(buffer);
     }
 
     fn is_nested(&self) -> bool {
@@ -106,21 +100,22 @@ pub enum NlPolicyTypeAttrs {
 }
 
 impl Nla for NlPolicyTypeAttrs {
-    fn value_len(&self) -> usize {
+    fn emit_value_into(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
         use NlPolicyTypeAttrs::*;
         match self {
-            Type(v) => size_of_val(v),
-            MinValueSigned(v) => size_of_val(v),
-            MaxValueSigned(v) => size_of_val(v),
-            MaxValueUnsigned(v) => size_of_val(v),
-            MinValueUnsigned(v) => size_of_val(v),
-            MinLength(v) => size_of_val(v),
-            MaxLength(v) => size_of_val(v),
-            PolicyIdx(v) => size_of_val(v),
-            PolicyMaxType(v) => size_of_val(v),
-            Bitfield32Mask(v) => size_of_val(v),
-            Mask(v) => size_of_val(v),
+            Type(v) => append_u32(out, u32::from(*v)),
+            MinValueSigned(v) => append_i64(out, *v),
+            MaxValueSigned(v) => append_i64(out, *v),
+            MaxValueUnsigned(v) => append_u64(out, *v),
+            MinValueUnsigned(v) => append_u64(out, *v),
+            MinLength(v) => append_u32(out, *v),
+            MaxLength(v) => append_u32(out, *v),
+            PolicyIdx(v) => append_u32(out, *v),
+            PolicyMaxType(v) => append_u32(out, *v),
+            Bitfield32Mask(v) => append_u32(out, *v),
+            Mask(v) => append_u64(out, *v),
         }
+        Ok(())
     }
 
     fn kind(&self) -> u16 {
@@ -137,23 +132,6 @@ impl Nla for NlPolicyTypeAttrs {
             PolicyMaxType(_) => NL_POLICY_TYPE_ATTR_POLICY_MAXTYPE,
             Bitfield32Mask(_) => NL_POLICY_TYPE_ATTR_BITFIELD32_MASK,
             Mask(_) => NL_POLICY_TYPE_ATTR_MASK,
-        }
-    }
-
-    fn emit_value(&self, buffer: &mut [u8]) {
-        use NlPolicyTypeAttrs::*;
-        match self {
-            Type(v) => emit_u32(buffer, u32::from(*v)).unwrap(),
-            MinValueSigned(v) => emit_i64(buffer, *v).unwrap(),
-            MaxValueSigned(v) => emit_i64(buffer, *v).unwrap(),
-            MaxValueUnsigned(v) => emit_u64(buffer, *v).unwrap(),
-            MinValueUnsigned(v) => emit_u64(buffer, *v).unwrap(),
-            MinLength(v) => emit_u32(buffer, *v).unwrap(),
-            MaxLength(v) => emit_u32(buffer, *v).unwrap(),
-            PolicyIdx(v) => emit_u32(buffer, *v).unwrap(),
-            PolicyMaxType(v) => emit_u32(buffer, *v).unwrap(),
-            Bitfield32Mask(v) => emit_u32(buffer, *v).unwrap(),
-            Mask(v) => emit_u64(buffer, *v).unwrap(),
         }
     }
 }

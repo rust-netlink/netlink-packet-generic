@@ -2,10 +2,9 @@
 
 use crate::constants::*;
 use netlink_packet_core::{
-    emit_u32, parse_u32, DecodeError, Emitable, ErrorContext, Nla, NlaBuffer,
-    NlasIterator, Parseable,
+    append_u32, emit_nlas_into, parse_u32, DecodeError, EncodeError,
+    ErrorContext, Nla, NlaBuffer, NlasIterator, Parseable,
 };
-use std::mem::size_of_val;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct OppolicyAttr {
@@ -14,16 +13,12 @@ pub struct OppolicyAttr {
 }
 
 impl Nla for OppolicyAttr {
-    fn value_len(&self) -> usize {
-        self.policy_idx.as_slice().buffer_len()
+    fn emit_value_into(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
+        emit_nlas_into(&self.policy_idx, out)
     }
 
     fn kind(&self) -> u16 {
         self.cmd as u16
-    }
-
-    fn emit_value(&self, buffer: &mut [u8]) {
-        self.policy_idx.as_slice().emit(buffer);
     }
 
     fn is_nested(&self) -> bool {
@@ -53,12 +48,13 @@ pub enum OppolicyIndexAttr {
 }
 
 impl Nla for OppolicyIndexAttr {
-    fn value_len(&self) -> usize {
+    fn emit_value_into(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
         use OppolicyIndexAttr::*;
         match self {
-            Do(v) => size_of_val(v),
-            Dump(v) => size_of_val(v),
+            Do(v) => append_u32(out, *v),
+            Dump(v) => append_u32(out, *v),
         }
+        Ok(())
     }
 
     fn kind(&self) -> u16 {
@@ -66,14 +62,6 @@ impl Nla for OppolicyIndexAttr {
         match self {
             Do(_) => CTRL_ATTR_POLICY_DO,
             Dump(_) => CTRL_ATTR_POLICY_DUMP,
-        }
-    }
-
-    fn emit_value(&self, buffer: &mut [u8]) {
-        use OppolicyIndexAttr::*;
-        match self {
-            Do(v) => emit_u32(buffer, *v).unwrap(),
-            Dump(v) => emit_u32(buffer, *v).unwrap(),
         }
     }
 }

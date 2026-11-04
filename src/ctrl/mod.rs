@@ -8,9 +8,9 @@
 use self::nlas::*;
 use crate::{constants::*, traits::*, GenlHeader};
 use netlink_packet_core::{
-    DecodeError, Emitable, ErrorContext, NlasIterator, Parseable,
-    ParseableParametrized,
+    DecodeError, ErrorContext, NlasIterator, Parseable, ParseableParametrized,
 };
+
 use std::convert::{TryFrom, TryInto};
 
 /// Netlink attributes for this family
@@ -111,13 +111,12 @@ impl GenlFamily for GenlCtrl {
     }
 }
 
-impl Emitable for GenlCtrl {
-    fn emit(&self, buffer: &mut [u8]) {
-        self.nlas.as_slice().emit(buffer)
-    }
-
-    fn buffer_len(&self) -> usize {
-        self.nlas.as_slice().buffer_len()
+impl ::netlink_packet_core::Emitable for GenlCtrl {
+    fn emit_into(
+        &self,
+        out: &mut Vec<u8>,
+    ) -> Result<(), ::netlink_packet_core::EncodeError> {
+        ::netlink_packet_core::emit_nlas_into(&self.nlas, out)
     }
 }
 

@@ -2,10 +2,11 @@
 
 use crate::constants::*;
 use netlink_packet_core::{
-    emit_u32, parse_u32, DecodeError, Emitable, ErrorContext, Nla, NlaBuffer,
-    Parseable,
+    append_u32, emit_nlas_into, parse_u32, DecodeError, EncodeError,
+    ErrorContext, Nla, NlaBuffer, Parseable,
 };
-use std::{mem::size_of_val, ops::Deref};
+
+use std::ops::Deref;
 
 pub struct OpList(Vec<Op>);
 
@@ -39,16 +40,12 @@ pub struct Op {
 }
 
 impl Nla for Op {
-    fn value_len(&self) -> usize {
-        self.nlas.as_slice().buffer_len()
+    fn emit_value_into(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
+        emit_nlas_into(&self.nlas, out)
     }
 
     fn kind(&self) -> u16 {
         self.index + 1
-    }
-
-    fn emit_value(&self, buffer: &mut [u8]) {
-        self.nlas.as_slice().emit(buffer);
     }
 }
 
@@ -59,12 +56,13 @@ pub enum OpAttrs {
 }
 
 impl Nla for OpAttrs {
-    fn value_len(&self) -> usize {
+    fn emit_value_into(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
         use OpAttrs::*;
         match self {
-            Id(v) => size_of_val(v),
-            Flags(v) => size_of_val(v),
+            Id(v) => append_u32(out, *v),
+            Flags(v) => append_u32(out, *v),
         }
+        Ok(())
     }
 
     fn kind(&self) -> u16 {
@@ -72,14 +70,6 @@ impl Nla for OpAttrs {
         match self {
             Id(_) => CTRL_ATTR_OP_ID,
             Flags(_) => CTRL_ATTR_OP_FLAGS,
-        }
-    }
-
-    fn emit_value(&self, buffer: &mut [u8]) {
-        use OpAttrs::*;
-        match self {
-            Id(v) => emit_u32(buffer, *v).unwrap(),
-            Flags(v) => emit_u32(buffer, *v).unwrap(),
         }
     }
 }

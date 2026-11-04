@@ -2,7 +2,8 @@
 
 //! header definition of generic netlink packet
 use crate::constants::GENL_HDRLEN;
-use netlink_packet_core::{DecodeError, Emitable};
+use netlink_packet_core::DecodeError;
+
 use zerocopy::{FromBytes, Immutable, IntoBytes, KnownLayout, Unaligned};
 
 /// Generic Netlink header
@@ -30,14 +31,14 @@ pub(crate) struct GenlHeaderBuffer {
     reserved: u16,
 }
 
-impl Emitable for GenlHeader {
-    fn buffer_len(&self) -> usize {
-        GENL_HDRLEN
-    }
-
-    fn emit(&self, buffer: &mut [u8]) {
+impl ::netlink_packet_core::Emitable for GenlHeader {
+    fn emit_into(
+        &self,
+        out: &mut Vec<u8>,
+    ) -> Result<(), ::netlink_packet_core::EncodeError> {
         let raw = GenlHeaderBuffer::from(self);
-        buffer[..GENL_HDRLEN].copy_from_slice(raw.as_bytes());
+        out.extend_from_slice(raw.as_bytes());
+        Ok(())
     }
 }
 
