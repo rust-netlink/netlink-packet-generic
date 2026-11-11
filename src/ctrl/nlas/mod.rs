@@ -182,11 +182,12 @@ impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlAttrs {
     }
 }
 
-#[cfg(target_endian = "little")]
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    // These tests compare against hard-coded little-endian wire bytes.
+    #[cfg(target_endian = "little")]
     #[test]
     fn mcast_groups_parse() {
         let mcast_bytes: [u8; 24] = [
@@ -212,6 +213,7 @@ mod tests {
         assert_eq!(expected_attr, result_attr);
     }
 
+    #[cfg(target_endian = "little")]
     #[test]
     fn mcast_groups_emit() {
         let mcast_attr = GenlCtrlAttrs::McastGroups(vec![
@@ -252,6 +254,7 @@ mod tests {
         assert_eq!(&expected_bytes[..], &buf[..]);
     }
 
+    #[cfg(target_endian = "little")]
     #[test]
     fn ops_parse() {
         let ops_bytes: [u8; 24] = [
@@ -275,6 +278,7 @@ mod tests {
         assert_eq!(expected_attr, result_attr);
     }
 
+    #[cfg(target_endian = "little")]
     #[test]
     fn ops_emit() {
         let ops = GenlCtrlAttrs::Ops(vec![

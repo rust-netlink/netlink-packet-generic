@@ -189,3 +189,126 @@ where
         NetlinkPayload::InnerMessage(message)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use netlink_packet_core::{append_u32, parse_u32};
+
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    struct TestPayload {
+        cmd: u8,
+        version: u8,
+        family_id: u16,
+        value: u32,
+    }
+
+    impl GenlFamily for TestPayload {
+        fn family_name() -> &'static str {
+            "test"
+        }
+
+        fn family_id(&self) -> u16 {
+            self.family_id
+        }
+
+        fn command(&self) -> u8 {
+            self.cmd
+        }
+
+        fn version(&self) -> u8 {
+            self.version
+        }
+    }
+
+    impl Emitable for TestPayload {
+        fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
+            append_u32(out, self.value);
+            Ok(())
+        }
+    }
+
+    impl ParseableParametrized<[u8], GenlHeader> for TestPayload {
+        fn parse_with_param(
+            buf: &[u8],
+            header: GenlHeader,
+        ) -> Result<Self, DecodeError> {
+            Ok(Self {
+                cmd: header.cmd,
+                version: header.version,
+                // The dynamic family ID is carried by GenlMessage, not by the
+                // family payload itself.
+                family_id: 0,
+                value: parse_u32(buf)?,
+            })
+        }
+    }
+
+    fn test_payload() -> TestPayload {
+        TestPayload {
+            cmd: 9,
+            version: 1,
+            family_id: 0,
+            value: 0x1234,
+        }
+    }
+
+    #[test]
+    fn message_round_trip() {
+        let message = GenlMessage::new(
+            GenlHeader { cmd: 9, version: 1 },
+            test_payload(),
+            42,
+        );
+
+        let mut buf = Vec::new();
+        message.emit(&mut buf).unwrap();
+
+        let parsed =
+            GenlMessage::<TestPayload>::parse_with_param(&buf, 42).unwrap();
+        assert_eq!(parsed, message);
+    }
+
+    #[test]
+    fn family_id_resolution() {
+        let mut message = GenlMessage::new(
+            GenlHeader { cmd: 9, version: 1 },
+            test_payload(),
+            42,
+        );
+        assert_eq!(message.family_id(), 42);
+        assert_eq!(message.message_type(), 42);
+
+        message.set_resolved_family_id(43);
+        assert_eq!(message.resolved_family_id(), 43);
+        assert_eq!(message.family_id(), 43);
+        assert_eq!(message.message_type(), 43);
+    }
+
+    #[test]
+    fn static_family_id_wins() {
+        let payload = TestPayload {
+            family_id: 7,
+            ..test_payload()
+        };
+        let message =
+            GenlMessage::new(GenlHeader { cmd: 0, version: 0 }, payload, 42);
+        assert_eq!(message.family_id(), 7);
+        assert_eq!(message.message_type(), 7);
+    }
+
+    #[test]
+    fn from_payload_and_finalize_update_header() {
+        let payload = TestPayload {
+            cmd: 5,
+            version: 2,
+            ..test_payload()
+        };
+        let mut message = GenlMessage::from_payload(payload);
+        assert_eq!(message.header, GenlHeader { cmd: 5, version: 2 });
+
+        message.header = GenlHeader { cmd: 0, version: 0 };
+        message.finalize();
+        assert_eq!(message.header, GenlHeader { cmd: 5, version: 2 });
+    }
+}
