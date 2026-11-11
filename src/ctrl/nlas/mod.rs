@@ -3,8 +3,8 @@
 use crate::constants::*;
 use netlink_packet_core::{
     append_bytes, append_u16, append_u32, parse_string, parse_u16, parse_u32,
-    DecodeError, Emitable, EncodeError, EncodeErrorKind, ErrorContext, Nla,
-    NlaBuffer, NlasIterator, Parseable,
+    DecodeError, DefaultNla, Emitable, EncodeError, EncodeErrorKind,
+    ErrorContext, Nla, NlaBuffer, NlasIterator, Parseable,
 };
 
 mod mcast;
@@ -56,6 +56,7 @@ pub enum GenlCtrlAttrs {
     Policy(PolicyAttr),
     OpPolicy(OppolicyAttr),
     Op(u32),
+    Unknown(DefaultNla),
 }
 
 impl Nla for GenlCtrlAttrs {
@@ -72,6 +73,7 @@ impl Nla for GenlCtrlAttrs {
             Policy(_) => CTRL_ATTR_POLICY,
             OpPolicy(_) => CTRL_ATTR_OP_POLICY,
             Op(_) => CTRL_ATTR_OP,
+            Unknown(nla) => nla.kind(),
         }
     }
 
@@ -90,6 +92,7 @@ impl Nla for GenlCtrlAttrs {
             Policy(nla) => nla.emit(out)?,
             OpPolicy(nla) => nla.emit(out)?,
             Op(v) => append_u32(out, *v),
+            Unknown(nla) => append_bytes(out, nla.value()),
         }
         Ok(())
     }
@@ -156,11 +159,7 @@ impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlAttrs {
                 .context("failed to parse CTRL_ATTR_OP_POLICY")?,
             ),
             CTRL_ATTR_OP => Self::Op(parse_u32(payload)?),
-            kind => {
-                return Err(DecodeError::from(format!(
-                    "Unknown NLA type: {kind}"
-                )))
-            }
+            _ => Self::Unknown(DefaultNla::parse(buf)?),
         })
     }
 }
@@ -458,5 +457,92 @@ mod policy_tests {
         });
 
         assert_eq!(round_trip(policy.clone()), policy);
+    }
+
+    #[test]
+    fn pad_and_byte_order_round_trip() {
+        let policy = GenlCtrlAttrs::Policy(PolicyAttr {
+            index: 3,
+            attr_policy: AttributePolicyAttr {
+                index: 3,
+                policies: vec![
+                    NlPolicyTypeAttrs::Type(NlaType::U64),
+                    NlPolicyTypeAttrs::Pad,
+                    NlPolicyTypeAttrs::ByteOrder(-1),
+                    NlPolicyTypeAttrs::MaxValueUnsigned(42),
+                ],
+            },
+        });
+
+        assert_eq!(round_trip(policy.clone()), policy);
+    }
+
+    #[test]
+    fn newer_nla_types_round_trip() {
+        let policy = GenlCtrlAttrs::Policy(PolicyAttr {
+            index: 4,
+            attr_policy: AttributePolicyAttr {
+                index: 4,
+                policies: vec![
+                    NlPolicyTypeAttrs::Type(NlaType::Invalid),
+                    NlPolicyTypeAttrs::Type(NlaType::SInt),
+                    NlPolicyTypeAttrs::Type(NlaType::UInt),
+                ],
+            },
+        });
+
+        assert_eq!(round_trip(policy.clone()), policy);
+    }
+
+    #[test]
+    fn newer_nla_types_map_to_kernel_values() {
+        for (nla_type, value) in [
+            (NlaType::Invalid, 0u32),
+            (NlaType::SInt, 16),
+            (NlaType::UInt, 17),
+        ] {
+            assert_eq!(u32::from(nla_type), value);
+            assert_eq!(NlaType::try_from(value).unwrap(), nla_type);
+        }
+    }
+
+    #[test]
+    fn unknown_policy_attr_round_trip() {
+        let policy = GenlCtrlAttrs::Policy(PolicyAttr {
+            index: 5,
+            attr_policy: AttributePolicyAttr {
+                index: 5,
+                policies: vec![NlPolicyTypeAttrs::Unknown(DefaultNla::new(
+                    200,
+                    vec![1, 2, 3, 4],
+                ))],
+            },
+        });
+
+        assert_eq!(round_trip(policy.clone()), policy);
+    }
+}
+
+#[cfg(test)]
+mod unknown_attr_tests {
+    use super::*;
+
+    #[test]
+    fn unknown_ctrl_attr_round_trip() {
+        let mut bytes = Vec::new();
+        bytes.extend_from_slice(&8u16.to_ne_bytes());
+        bytes.extend_from_slice(&4242u16.to_ne_bytes());
+        bytes.extend_from_slice(&[1, 2, 3, 4]);
+
+        let parsed =
+            GenlCtrlAttrs::parse(&NlaBuffer::new(&bytes).unwrap()).unwrap();
+        assert_eq!(
+            parsed,
+            GenlCtrlAttrs::Unknown(DefaultNla::new(4242, vec![1, 2, 3, 4]))
+        );
+
+        let mut emitted = Vec::new();
+        parsed.emit(&mut emitted).unwrap();
+        assert_eq!(emitted, bytes);
     }
 }
