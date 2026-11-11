@@ -61,3 +61,30 @@ impl From<&GenlHeader> for GenlHeaderBuffer {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn header_round_trip() {
+        let header = GenlHeader { cmd: 7, version: 3 };
+        let mut buf = Vec::new();
+        header.emit(&mut buf).unwrap();
+
+        assert_eq!(buf, [7, 3, 0, 0]);
+        assert_eq!(GenlHeader::parse(&buf).unwrap(), header);
+    }
+
+    #[test]
+    fn header_parse_too_short() {
+        let err = GenlHeader::parse(&[1, 2, 3]).unwrap_err();
+        assert!(err.is_buffer_too_small());
+    }
+
+    #[test]
+    fn header_ignores_reserved_bytes() {
+        let header = GenlHeader::parse(&[1, 2, 0xff, 0xff]).unwrap();
+        assert_eq!(header, GenlHeader { cmd: 1, version: 2 });
+    }
+}
