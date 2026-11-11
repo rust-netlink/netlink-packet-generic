@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 
 //! header definition of generic netlink packet
-use crate::constants::GENL_HDRLEN;
 use netlink_packet_core::{append_bytes, DecodeError, Emitable, EncodeError};
 use zerocopy::{FromBytes, Immutable, IntoBytes, KnownLayout, Unaligned};
+
+pub(crate) const GENL_HDRLEN: usize = 4;
 
 /// Generic Netlink header
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

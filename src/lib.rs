@@ -67,15 +67,16 @@
 //! If you are implementing such a generic family, note that you should define
 //! the header data structure in your payload type and handle the serialization.
 
-pub mod constants;
+mod ctrl;
+mod header;
+mod message;
+mod traits;
 
-pub mod ctrl;
-
-pub mod header;
+pub use self::ctrl::{
+    AttributePolicyAttr, GenlCtrl, GenlCtrlAttrs, GenlCtrlCmd, McastGrpAttrs,
+    NlPolicyTypeAttrs, NlaType, OpAttrs, OppolicyAttr, OppolicyIndexAttr,
+    PolicyAttr,
+};
 pub use self::header::GenlHeader;
-
-pub mod message;
 pub use self::message::GenlMessage;
-
-pub mod traits;
 pub use self::traits::GenlFamily;

@@ -1,12 +1,44 @@
 // SPDX-License-Identifier: MIT
 
-use crate::constants::*;
 use netlink_packet_core::{
     append_bytes, append_i64, append_u32, append_u64, append_u8, parse_i64,
     parse_i8, parse_u32, parse_u64, DecodeError, DefaultNla, Emitable,
     EncodeError, ErrorContext, Nla, NlaBuffer, NlasIterator, Parseable,
 };
 use std::convert::TryFrom;
+
+const NL_ATTR_TYPE_INVALID: u32 = 0;
+const NL_ATTR_TYPE_FLAG: u32 = 1;
+const NL_ATTR_TYPE_U8: u32 = 2;
+const NL_ATTR_TYPE_U16: u32 = 3;
+const NL_ATTR_TYPE_U32: u32 = 4;
+const NL_ATTR_TYPE_U64: u32 = 5;
+const NL_ATTR_TYPE_S8: u32 = 6;
+const NL_ATTR_TYPE_S16: u32 = 7;
+const NL_ATTR_TYPE_S32: u32 = 8;
+const NL_ATTR_TYPE_S64: u32 = 9;
+const NL_ATTR_TYPE_BINARY: u32 = 10;
+const NL_ATTR_TYPE_STRING: u32 = 11;
+const NL_ATTR_TYPE_NUL_STRING: u32 = 12;
+const NL_ATTR_TYPE_NESTED: u32 = 13;
+const NL_ATTR_TYPE_NESTED_ARRAY: u32 = 14;
+const NL_ATTR_TYPE_BITFIELD32: u32 = 15;
+const NL_ATTR_TYPE_SINT: u32 = 16;
+const NL_ATTR_TYPE_UINT: u32 = 17;
+
+const NL_POLICY_TYPE_ATTR_TYPE: u16 = 1;
+const NL_POLICY_TYPE_ATTR_MIN_VALUE_S: u16 = 2;
+const NL_POLICY_TYPE_ATTR_MAX_VALUE_S: u16 = 3;
+const NL_POLICY_TYPE_ATTR_MIN_VALUE_U: u16 = 4;
+const NL_POLICY_TYPE_ATTR_MAX_VALUE_U: u16 = 5;
+const NL_POLICY_TYPE_ATTR_MIN_LENGTH: u16 = 6;
+const NL_POLICY_TYPE_ATTR_MAX_LENGTH: u16 = 7;
+const NL_POLICY_TYPE_ATTR_POLICY_IDX: u16 = 8;
+const NL_POLICY_TYPE_ATTR_POLICY_MAXTYPE: u16 = 9;
+const NL_POLICY_TYPE_ATTR_BITFIELD32_MASK: u16 = 10;
+const NL_POLICY_TYPE_ATTR_PAD: u16 = 11;
+const NL_POLICY_TYPE_ATTR_MASK: u16 = 12;
+const NL_POLICY_TYPE_ATTR_BYTE_ORDER: u16 = 13;
 
 // PolicyAttr
 
@@ -281,5 +313,22 @@ impl TryFrom<u32> for NlaType {
                 )))
             }
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unsigned_min_max_kinds() {
+        assert_eq!(
+            NlPolicyTypeAttrs::MinValueUnsigned(0).kind(),
+            NL_POLICY_TYPE_ATTR_MIN_VALUE_U
+        );
+        assert_eq!(
+            NlPolicyTypeAttrs::MaxValueUnsigned(0).kind(),
+            NL_POLICY_TYPE_ATTR_MAX_VALUE_U
+        );
     }
 }

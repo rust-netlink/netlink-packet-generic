@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 
-use crate::constants::*;
 use netlink_packet_core::{
     append_u32, parse_u32, DecodeError, Emitable, EncodeError, ErrorContext,
     Nla, NlaBuffer, NlasIterator, Parseable,
 };
+
+const CTRL_ATTR_POLICY_DO: u16 = 1;
+const CTRL_ATTR_POLICY_DUMP: u16 = 2;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct OppolicyAttr {

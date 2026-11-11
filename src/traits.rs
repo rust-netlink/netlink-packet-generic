@@ -8,8 +8,8 @@
 /// informations in order to build the packet headers (`nlmsghdr` and
 /// `genlmsghdr`).
 ///
-/// If you are looking for an example implementation, you can refer to the
-/// [`crate::ctrl`] module.
+/// If you are looking for an example implementation, you can refer to
+/// [`crate::GenlCtrl`].
 pub trait GenlFamily {
     /// Return the unique family name registered in the kernel
     ///
