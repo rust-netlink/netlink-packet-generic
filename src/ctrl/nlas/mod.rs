@@ -421,3 +421,42 @@ mod string_validation_tests {
         assert_eq!(parsed, attr);
     }
 }
+
+#[cfg(test)]
+mod policy_tests {
+    use super::*;
+
+    fn round_trip(policy: GenlCtrlAttrs) -> GenlCtrlAttrs {
+        let mut buf = Vec::new();
+        policy.emit(&mut buf).unwrap();
+        GenlCtrlAttrs::parse(&NlaBuffer::new(&buf).unwrap()).unwrap()
+    }
+
+    #[test]
+    fn unsigned_min_max_kinds() {
+        assert_eq!(
+            NlPolicyTypeAttrs::MinValueUnsigned(0).kind(),
+            NL_POLICY_TYPE_ATTR_MIN_VALUE_U
+        );
+        assert_eq!(
+            NlPolicyTypeAttrs::MaxValueUnsigned(0).kind(),
+            NL_POLICY_TYPE_ATTR_MAX_VALUE_U
+        );
+    }
+
+    #[test]
+    fn unsigned_min_max_round_trip() {
+        let policy = GenlCtrlAttrs::Policy(PolicyAttr {
+            index: 2,
+            attr_policy: AttributePolicyAttr {
+                index: 2,
+                policies: vec![
+                    NlPolicyTypeAttrs::MinValueUnsigned(1),
+                    NlPolicyTypeAttrs::MaxValueUnsigned(u64::MAX),
+                ],
+            },
+        });
+
+        assert_eq!(round_trip(policy.clone()), policy);
+    }
+}
