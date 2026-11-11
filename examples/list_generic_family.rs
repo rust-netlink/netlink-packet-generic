@@ -6,10 +6,12 @@ use netlink_packet_core::{
 use netlink_packet_generic::{
     GenlCtrl, GenlCtrlAttrs, GenlCtrlCmd, GenlMessage,
 };
-use netlink_sys::{protocols::NETLINK_GENERIC, Socket, SocketAddr};
+use netlink_sys::{Socket, SocketAddr};
+
+const NETLINK_GENERIC: isize = 16;
 
 fn main() {
-    let mut socket = Socket::new(NETLINK_GENERIC).unwrap();
+    let socket = Socket::new(NETLINK_GENERIC).unwrap();
     socket.bind_auto().unwrap();
     socket.connect(&SocketAddr::new(0, 0)).unwrap();
 
