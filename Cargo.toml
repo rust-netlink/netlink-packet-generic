@@ -3,7 +3,6 @@ name = "netlink-packet-generic"
 version = "0.5.0"
 authors = ["Leo <leo881003@gmail.com>"]
 edition = "2021"
-homepage = "https://github.com/rust-netlink/netlink-packet-generic"
 repository = "https://github.com/rust-netlink/netlink-packet-generic"
 keywords = ["netlink", "linux"]
 license = "MIT"
