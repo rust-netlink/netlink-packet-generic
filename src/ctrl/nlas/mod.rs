@@ -44,7 +44,25 @@ pub(crate) fn append_nl_string(
     Ok(())
 }
 
+/// Convert a zero-based list index into the `u16` stored in an [`Op`] or
+/// [`McastGroup`].
+///
+/// The emitted attribute kind is `index + 1`, so the largest usable index is
+/// `u16::MAX - 1`. Larger lists are rejected instead of wrapping.
+pub(crate) fn checked_index(index: usize) -> Result<u16, EncodeError> {
+    let kind = index
+        .checked_add(1)
+        .and_then(|kind| u16::try_from(kind).ok())
+        .ok_or_else(|| {
+            EncodeError::too_large(format!(
+                "netlink attribute list index {index} does not fit in u16"
+            ))
+        })?;
+    Ok(kind - 1)
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum GenlCtrlAttrs {
     FamilyId(u16),
     FamilyName(String),
@@ -85,9 +103,9 @@ impl Nla for GenlCtrlAttrs {
             Version(v) => append_u32(out, *v),
             HdrSize(v) => append_u32(out, *v),
             MaxAttr(v) => append_u32(out, *v),
-            Ops(nlas) => OpList::from(nlas).as_slice().emit(out)?,
+            Ops(nlas) => OpList::try_from(nlas)?.as_slice().emit(out)?,
             McastGroups(nlas) => {
-                McastGroupList::from(nlas).as_slice().emit(out)?
+                McastGroupList::try_from(nlas)?.as_slice().emit(out)?
             }
             Policy(nla) => nla.emit(out)?,
             OpPolicy(nla) => nla.emit(out)?,
@@ -544,5 +562,12 @@ mod unknown_attr_tests {
         let mut emitted = Vec::new();
         parsed.emit(&mut emitted).unwrap();
         assert_eq!(emitted, bytes);
+    }
+
+    #[test]
+    fn checked_index_rejects_u16_overflow() {
+        assert_eq!(checked_index(0).unwrap(), 0);
+        assert_eq!(checked_index(u16::MAX as usize - 1).unwrap(), u16::MAX - 1);
+        assert!(checked_index(u16::MAX as usize).unwrap_err().is_too_large());
     }
 }

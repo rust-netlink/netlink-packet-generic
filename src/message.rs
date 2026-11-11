@@ -18,6 +18,12 @@ use netlink_packet_core::NetlinkMessage;
 /// The message can be serialize/deserialize if the type `F` implements
 /// [`GenlFamily`], [`Emitable`], and [`ParseableParametrized<[u8],
 /// GenlHeader>`](ParseableParametrized).
+///
+/// # Equality
+///
+/// The derived `PartialEq` and `Eq` implementations compare every field,
+/// including the resolved family ID. Two messages that differ only in their
+/// resolved family ID are therefore not equal.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GenlMessage<F> {
     pub header: GenlHeader,
@@ -25,10 +31,7 @@ pub struct GenlMessage<F> {
     resolved_family_id: u16,
 }
 
-impl<F> GenlMessage<F>
-where
-    F: Debug,
-{
+impl<F> GenlMessage<F> {
     /// Construct the message
     pub fn new(header: GenlHeader, payload: F, family_id: u16) -> Self {
         Self {
@@ -81,7 +84,7 @@ where
 
 impl<F> GenlMessage<F>
 where
-    F: GenlFamily + Debug,
+    F: GenlFamily,
 {
     /// Build the message from the payload
     ///

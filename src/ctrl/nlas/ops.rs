@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 
+use super::checked_index;
 use crate::constants::*;
 use netlink_packet_core::{
     append_u32, parse_u32, DecodeError, Emitable, EncodeError, ErrorContext,
@@ -7,7 +8,7 @@ use netlink_packet_core::{
 };
 use std::ops::Deref;
 
-pub struct OpList(Vec<Op>);
+pub(crate) struct OpList(Vec<Op>);
 
 impl Deref for OpList {
     type Target = Vec<Op>;
@@ -17,25 +18,29 @@ impl Deref for OpList {
     }
 }
 
-impl From<&Vec<Vec<OpAttrs>>> for OpList {
-    fn from(ops: &Vec<Vec<OpAttrs>>) -> Self {
-        Self(
+impl TryFrom<&Vec<Vec<OpAttrs>>> for OpList {
+    type Error = EncodeError;
+
+    fn try_from(ops: &Vec<Vec<OpAttrs>>) -> Result<Self, Self::Error> {
+        Ok(Self(
             ops.iter()
                 .cloned()
                 .enumerate()
-                .map(|(index, nlas)| Op {
-                    index: index as u16,
-                    nlas,
+                .map(|(index, nlas)| {
+                    Ok(Op {
+                        index: checked_index(index)?,
+                        nlas,
+                    })
                 })
-                .collect(),
-        )
+                .collect::<Result<Vec<_>, EncodeError>>()?,
+        ))
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Op {
-    pub index: u16,
-    pub nlas: Vec<OpAttrs>,
+pub(crate) struct Op {
+    pub(crate) index: u16,
+    pub(crate) nlas: Vec<OpAttrs>,
 }
 
 impl Nla for Op {
@@ -49,6 +54,7 @@ impl Nla for Op {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum OpAttrs {
     Id(u32),
     Flags(u32),

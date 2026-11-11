@@ -41,6 +41,7 @@ impl<'a> Parseable<NlaBuffer<'a>> for OppolicyAttr {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum OppolicyIndexAttr {
     Do(u32),
     Dump(u32),
