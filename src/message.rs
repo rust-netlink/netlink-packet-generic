@@ -118,10 +118,10 @@ where
     /// Return the resolved family ID which should be filled into the
     /// `message_type` field in [`NetlinkHeader`].
     ///
-    /// The implementation of [`NetlinkSerializable::message_type()`] would use
-    /// this function's result as its the return value. Thus, the family id can
-    /// be automatically filled into the `message_type` during the call to
-    /// [`NetlinkMessage::finalize()`].
+    /// The implementation of [`NetlinkMessagePayload::message_type()`] uses
+    /// this function's result as its return value. [`NetlinkMessage`] therefore
+    /// fills the family ID into the `message_type` field when the message is
+    /// emitted via [`Emitable`].
     pub fn family_id(&self) -> u16 {
         let static_id = self.payload.family_id();
         if static_id == 0 {
