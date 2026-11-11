@@ -36,7 +36,6 @@ const NL_POLICY_TYPE_ATTR_MAX_LENGTH: u16 = 7;
 const NL_POLICY_TYPE_ATTR_POLICY_IDX: u16 = 8;
 const NL_POLICY_TYPE_ATTR_POLICY_MAXTYPE: u16 = 9;
 const NL_POLICY_TYPE_ATTR_BITFIELD32_MASK: u16 = 10;
-const NL_POLICY_TYPE_ATTR_PAD: u16 = 11;
 const NL_POLICY_TYPE_ATTR_MASK: u16 = 12;
 const NL_POLICY_TYPE_ATTR_BYTE_ORDER: u16 = 13;
 
@@ -127,7 +126,6 @@ pub enum NlPolicyTypeAttrs {
     PolicyMaxType(u32),
     Bitfield32Mask(u32),
     Mask(u64),
-    Pad,
     ByteOrder(i8),
     Unknown(DefaultNla),
 }
@@ -147,7 +145,6 @@ impl Nla for NlPolicyTypeAttrs {
             PolicyMaxType(_) => NL_POLICY_TYPE_ATTR_POLICY_MAXTYPE,
             Bitfield32Mask(_) => NL_POLICY_TYPE_ATTR_BITFIELD32_MASK,
             Mask(_) => NL_POLICY_TYPE_ATTR_MASK,
-            Pad => NL_POLICY_TYPE_ATTR_PAD,
             ByteOrder(_) => NL_POLICY_TYPE_ATTR_BYTE_ORDER,
             Unknown(nla) => nla.kind(),
         }
@@ -167,7 +164,6 @@ impl Nla for NlPolicyTypeAttrs {
             PolicyMaxType(v) => append_u32(out, *v),
             Bitfield32Mask(v) => append_u32(out, *v),
             Mask(v) => append_u64(out, *v),
-            Pad => {}
             ByteOrder(v) => append_u8(out, *v as u8),
             Unknown(nla) => append_bytes(out, nla.value()),
         }
@@ -226,7 +222,6 @@ impl<'a> Parseable<NlaBuffer<'a>> for NlPolicyTypeAttrs {
                 parse_u64(payload)
                     .context("invalid NL_POLICY_TYPE_ATTR_MASK value")?,
             ),
-            NL_POLICY_TYPE_ATTR_PAD => Self::Pad,
             NL_POLICY_TYPE_ATTR_BYTE_ORDER => Self::ByteOrder(
                 parse_i8(payload)
                     .context("invalid NL_POLICY_TYPE_ATTR_BYTE_ORDER value")?,
@@ -257,6 +252,7 @@ pub enum NlaType {
     Bitfield32,
     SInt,
     UInt,
+    Unknown(u32),
 }
 
 impl From<NlaType> for u32 {
@@ -280,6 +276,7 @@ impl From<NlaType> for u32 {
             NlaType::Bitfield32 => NL_ATTR_TYPE_BITFIELD32,
             NlaType::SInt => NL_ATTR_TYPE_SINT,
             NlaType::UInt => NL_ATTR_TYPE_UINT,
+            NlaType::Unknown(value) => value,
         }
     }
 }
@@ -307,11 +304,7 @@ impl TryFrom<u32> for NlaType {
             NL_ATTR_TYPE_BITFIELD32 => NlaType::Bitfield32,
             NL_ATTR_TYPE_SINT => NlaType::SInt,
             NL_ATTR_TYPE_UINT => NlaType::UInt,
-            _ => {
-                return Err(DecodeError::from(format!(
-                    "invalid NLA type: {value}"
-                )))
-            }
+            value => NlaType::Unknown(value),
         })
     }
 }
