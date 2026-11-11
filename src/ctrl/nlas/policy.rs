@@ -2,9 +2,9 @@
 
 use crate::constants::*;
 use netlink_packet_core::{
-    append_i64, append_u32, append_u64, parse_i64, parse_u32, parse_u64,
-    DecodeError, Emitable, EncodeError, ErrorContext, Nla, NlaBuffer,
-    NlasIterator, Parseable,
+    append_bytes, append_i64, append_u32, append_u64, append_u8, parse_i64,
+    parse_i8, parse_u32, parse_u64, DecodeError, DefaultNla, Emitable,
+    EncodeError, ErrorContext, Nla, NlaBuffer, NlasIterator, Parseable,
 };
 use std::convert::TryFrom;
 
@@ -94,6 +94,9 @@ pub enum NlPolicyTypeAttrs {
     PolicyMaxType(u32),
     Bitfield32Mask(u32),
     Mask(u64),
+    Pad,
+    ByteOrder(i8),
+    Unknown(DefaultNla),
 }
 
 impl Nla for NlPolicyTypeAttrs {
@@ -111,6 +114,9 @@ impl Nla for NlPolicyTypeAttrs {
             PolicyMaxType(_) => NL_POLICY_TYPE_ATTR_POLICY_MAXTYPE,
             Bitfield32Mask(_) => NL_POLICY_TYPE_ATTR_BITFIELD32_MASK,
             Mask(_) => NL_POLICY_TYPE_ATTR_MASK,
+            Pad => NL_POLICY_TYPE_ATTR_PAD,
+            ByteOrder(_) => NL_POLICY_TYPE_ATTR_BYTE_ORDER,
+            Unknown(nla) => nla.kind(),
         }
     }
 
@@ -128,6 +134,9 @@ impl Nla for NlPolicyTypeAttrs {
             PolicyMaxType(v) => append_u32(out, *v),
             Bitfield32Mask(v) => append_u32(out, *v),
             Mask(v) => append_u64(out, *v),
+            Pad => {}
+            ByteOrder(v) => append_u8(out, *v as u8),
+            Unknown(nla) => append_bytes(out, nla.value()),
         }
         Ok(())
     }
@@ -184,17 +193,19 @@ impl<'a> Parseable<NlaBuffer<'a>> for NlPolicyTypeAttrs {
                 parse_u64(payload)
                     .context("invalid NL_POLICY_TYPE_ATTR_MASK value")?,
             ),
-            kind => {
-                return Err(DecodeError::from(format!(
-                    "Unknown NLA type: {kind}"
-                )))
-            }
+            NL_POLICY_TYPE_ATTR_PAD => Self::Pad,
+            NL_POLICY_TYPE_ATTR_BYTE_ORDER => Self::ByteOrder(
+                parse_i8(payload)
+                    .context("invalid NL_POLICY_TYPE_ATTR_BYTE_ORDER value")?,
+            ),
+            _ => Self::Unknown(DefaultNla::parse(buf)?),
         })
     }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum NlaType {
+    Invalid,
     Flag,
     U8,
     U16,
@@ -210,11 +221,14 @@ pub enum NlaType {
     Nested,
     NestedArray,
     Bitfield32,
+    SInt,
+    UInt,
 }
 
 impl From<NlaType> for u32 {
     fn from(nlatype: NlaType) -> u32 {
         match nlatype {
+            NlaType::Invalid => NL_ATTR_TYPE_INVALID,
             NlaType::Flag => NL_ATTR_TYPE_FLAG,
             NlaType::U8 => NL_ATTR_TYPE_U8,
             NlaType::U16 => NL_ATTR_TYPE_U16,
@@ -230,6 +244,8 @@ impl From<NlaType> for u32 {
             NlaType::Nested => NL_ATTR_TYPE_NESTED,
             NlaType::NestedArray => NL_ATTR_TYPE_NESTED_ARRAY,
             NlaType::Bitfield32 => NL_ATTR_TYPE_BITFIELD32,
+            NlaType::SInt => NL_ATTR_TYPE_SINT,
+            NlaType::UInt => NL_ATTR_TYPE_UINT,
         }
     }
 }
@@ -239,6 +255,7 @@ impl TryFrom<u32> for NlaType {
 
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         Ok(match value {
+            NL_ATTR_TYPE_INVALID => NlaType::Invalid,
             NL_ATTR_TYPE_FLAG => NlaType::Flag,
             NL_ATTR_TYPE_U8 => NlaType::U8,
             NL_ATTR_TYPE_U16 => NlaType::U16,
@@ -254,6 +271,8 @@ impl TryFrom<u32> for NlaType {
             NL_ATTR_TYPE_NESTED => NlaType::Nested,
             NL_ATTR_TYPE_NESTED_ARRAY => NlaType::NestedArray,
             NL_ATTR_TYPE_BITFIELD32 => NlaType::Bitfield32,
+            NL_ATTR_TYPE_SINT => NlaType::SInt,
+            NL_ATTR_TYPE_UINT => NlaType::UInt,
             _ => {
                 return Err(DecodeError::from(format!(
                     "invalid NLA type: {value}"
