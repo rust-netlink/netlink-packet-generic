@@ -2,10 +2,11 @@
 
 use crate::constants::*;
 use netlink_packet_core::{
-    emit_i64, emit_u32, emit_u64, parse_i64, parse_u32, parse_u64, DecodeError,
-    Emitable, ErrorContext, Nla, NlaBuffer, NlasIterator, Parseable,
+    append_i64, append_u32, append_u64, parse_i64, parse_u32, parse_u64,
+    DecodeError, Emitable, EncodeError, ErrorContext, Nla, NlaBuffer,
+    NlasIterator, Parseable,
 };
-use std::{convert::TryFrom, mem::size_of_val};
+use std::convert::TryFrom;
 
 // PolicyAttr
 
@@ -16,16 +17,12 @@ pub struct PolicyAttr {
 }
 
 impl Nla for PolicyAttr {
-    fn value_len(&self) -> usize {
-        self.attr_policy.buffer_len()
-    }
-
     fn kind(&self) -> u16 {
         self.index
     }
 
-    fn emit_value(&self, buffer: &mut [u8]) {
-        self.attr_policy.emit(buffer);
+    fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
+        self.attr_policy.emit(out)
     }
 
     fn is_nested(&self) -> bool {
@@ -33,14 +30,15 @@ impl Nla for PolicyAttr {
     }
 }
 
-impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>> for PolicyAttr {
-    fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
-        let payload = buf.value();
-
+impl<'a> Parseable<NlaBuffer<'a>> for PolicyAttr {
+    fn parse(buf: &NlaBuffer<'a>) -> Result<Self, DecodeError> {
         Ok(Self {
             index: buf.kind(),
-            attr_policy: AttributePolicyAttr::parse(&NlaBuffer::new(payload))
-                .context("failed to parse PolicyAttr")?,
+            attr_policy: AttributePolicyAttr::parse(
+                &NlaBuffer::new(buf.value())
+                    .context("failed to parse PolicyAttr")?,
+            )
+            .context("failed to parse PolicyAttr")?,
         })
     }
 }
@@ -54,16 +52,12 @@ pub struct AttributePolicyAttr {
 }
 
 impl Nla for AttributePolicyAttr {
-    fn value_len(&self) -> usize {
-        self.policies.as_slice().buffer_len()
-    }
-
     fn kind(&self) -> u16 {
         self.index
     }
 
-    fn emit_value(&self, buffer: &mut [u8]) {
-        self.policies.as_slice().emit(buffer);
+    fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
+        self.policies.as_slice().emit(out)
     }
 
     fn is_nested(&self) -> bool {
@@ -71,13 +65,10 @@ impl Nla for AttributePolicyAttr {
     }
 }
 
-impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
-    for AttributePolicyAttr
-{
-    fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
-        let payload = buf.value();
-        let policies = NlasIterator::new(payload)
-            .map(|nla| nla.and_then(|nla| NlPolicyTypeAttrs::parse(&nla)))
+impl<'a> Parseable<NlaBuffer<'a>> for AttributePolicyAttr {
+    fn parse(buf: &NlaBuffer<'a>) -> Result<Self, DecodeError> {
+        let policies = NlasIterator::new(buf.value())?
+            .map(|nla| NlPolicyTypeAttrs::parse(&nla))
             .collect::<Result<Vec<_>, _>>()
             .context("failed to parse AttributePolicyAttr")?;
 
@@ -106,23 +97,6 @@ pub enum NlPolicyTypeAttrs {
 }
 
 impl Nla for NlPolicyTypeAttrs {
-    fn value_len(&self) -> usize {
-        use NlPolicyTypeAttrs::*;
-        match self {
-            Type(v) => size_of_val(v),
-            MinValueSigned(v) => size_of_val(v),
-            MaxValueSigned(v) => size_of_val(v),
-            MaxValueUnsigned(v) => size_of_val(v),
-            MinValueUnsigned(v) => size_of_val(v),
-            MinLength(v) => size_of_val(v),
-            MaxLength(v) => size_of_val(v),
-            PolicyIdx(v) => size_of_val(v),
-            PolicyMaxType(v) => size_of_val(v),
-            Bitfield32Mask(v) => size_of_val(v),
-            Mask(v) => size_of_val(v),
-        }
-    }
-
     fn kind(&self) -> u16 {
         use NlPolicyTypeAttrs::*;
         match self {
@@ -140,28 +114,27 @@ impl Nla for NlPolicyTypeAttrs {
         }
     }
 
-    fn emit_value(&self, buffer: &mut [u8]) {
+    fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
         use NlPolicyTypeAttrs::*;
         match self {
-            Type(v) => emit_u32(buffer, u32::from(*v)).unwrap(),
-            MinValueSigned(v) => emit_i64(buffer, *v).unwrap(),
-            MaxValueSigned(v) => emit_i64(buffer, *v).unwrap(),
-            MaxValueUnsigned(v) => emit_u64(buffer, *v).unwrap(),
-            MinValueUnsigned(v) => emit_u64(buffer, *v).unwrap(),
-            MinLength(v) => emit_u32(buffer, *v).unwrap(),
-            MaxLength(v) => emit_u32(buffer, *v).unwrap(),
-            PolicyIdx(v) => emit_u32(buffer, *v).unwrap(),
-            PolicyMaxType(v) => emit_u32(buffer, *v).unwrap(),
-            Bitfield32Mask(v) => emit_u32(buffer, *v).unwrap(),
-            Mask(v) => emit_u64(buffer, *v).unwrap(),
+            Type(v) => append_u32(out, u32::from(*v)),
+            MinValueSigned(v) => append_i64(out, *v),
+            MaxValueSigned(v) => append_i64(out, *v),
+            MaxValueUnsigned(v) => append_u64(out, *v),
+            MinValueUnsigned(v) => append_u64(out, *v),
+            MinLength(v) => append_u32(out, *v),
+            MaxLength(v) => append_u32(out, *v),
+            PolicyIdx(v) => append_u32(out, *v),
+            PolicyMaxType(v) => append_u32(out, *v),
+            Bitfield32Mask(v) => append_u32(out, *v),
+            Mask(v) => append_u64(out, *v),
         }
+        Ok(())
     }
 }
 
-impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
-    for NlPolicyTypeAttrs
-{
-    fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
+impl<'a> Parseable<NlaBuffer<'a>> for NlPolicyTypeAttrs {
+    fn parse(buf: &NlaBuffer<'a>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {
             NL_POLICY_TYPE_ATTR_TYPE => {

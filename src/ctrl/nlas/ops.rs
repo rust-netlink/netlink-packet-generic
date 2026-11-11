@@ -2,10 +2,10 @@
 
 use crate::constants::*;
 use netlink_packet_core::{
-    emit_u32, parse_u32, DecodeError, Emitable, ErrorContext, Nla, NlaBuffer,
-    Parseable,
+    append_u32, parse_u32, DecodeError, Emitable, EncodeError, ErrorContext,
+    Nla, NlaBuffer, Parseable,
 };
-use std::{mem::size_of_val, ops::Deref};
+use std::ops::Deref;
 
 pub struct OpList(Vec<Op>);
 
@@ -39,16 +39,12 @@ pub struct Op {
 }
 
 impl Nla for Op {
-    fn value_len(&self) -> usize {
-        self.nlas.as_slice().buffer_len()
-    }
-
     fn kind(&self) -> u16 {
         self.index + 1
     }
 
-    fn emit_value(&self, buffer: &mut [u8]) {
-        self.nlas.as_slice().emit(buffer);
+    fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
+        self.nlas.as_slice().emit(out)
     }
 }
 
@@ -59,14 +55,6 @@ pub enum OpAttrs {
 }
 
 impl Nla for OpAttrs {
-    fn value_len(&self) -> usize {
-        use OpAttrs::*;
-        match self {
-            Id(v) => size_of_val(v),
-            Flags(v) => size_of_val(v),
-        }
-    }
-
     fn kind(&self) -> u16 {
         use OpAttrs::*;
         match self {
@@ -75,17 +63,18 @@ impl Nla for OpAttrs {
         }
     }
 
-    fn emit_value(&self, buffer: &mut [u8]) {
+    fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
         use OpAttrs::*;
         match self {
-            Id(v) => emit_u32(buffer, *v).unwrap(),
-            Flags(v) => emit_u32(buffer, *v).unwrap(),
+            Id(v) => append_u32(out, *v),
+            Flags(v) => append_u32(out, *v),
         }
+        Ok(())
     }
 }
 
-impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>> for OpAttrs {
-    fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
+impl<'a> Parseable<NlaBuffer<'a>> for OpAttrs {
+    fn parse(buf: &NlaBuffer<'a>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {
             CTRL_ATTR_OP_ID => Self::Id(

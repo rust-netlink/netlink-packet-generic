@@ -4,8 +4,8 @@
 
 use crate::{constants::GENL_HDRLEN, header::GenlHeader, traits::*};
 use netlink_packet_core::{
-    DecodeError, Emitable, NetlinkDeserializable, NetlinkHeader,
-    NetlinkPayload, NetlinkSerializable, ParseableParametrized,
+    DecodeError, Emitable, EncodeError, NetlinkDeserializable, NetlinkHeader,
+    NetlinkMessagePayload, NetlinkPayload, ParseableParametrized,
 };
 use std::fmt::Debug;
 
@@ -133,32 +133,18 @@ impl<F> Emitable for GenlMessage<F>
 where
     F: GenlFamily + Emitable + Debug,
 {
-    fn buffer_len(&self) -> usize {
-        self.header.buffer_len() + self.payload.buffer_len()
-    }
-
-    fn emit(&self, buffer: &mut [u8]) {
-        self.header.emit(buffer);
-
-        let buffer = &mut buffer[self.header.buffer_len()..];
-        self.payload.emit(buffer);
+    fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
+        self.header.emit(out)?;
+        self.payload.emit(out)
     }
 }
 
-impl<F> NetlinkSerializable for GenlMessage<F>
+impl<F> NetlinkMessagePayload for GenlMessage<F>
 where
     F: GenlFamily + Emitable + Debug,
 {
     fn message_type(&self) -> u16 {
         self.family_id()
-    }
-
-    fn buffer_len(&self) -> usize {
-        <Self as Emitable>::buffer_len(self)
-    }
-
-    fn serialize(&self, buffer: &mut [u8]) {
-        self.emit(buffer)
     }
 }
 
@@ -166,11 +152,10 @@ impl<F> NetlinkDeserializable for GenlMessage<F>
 where
     F: ParseableParametrized<[u8], GenlHeader> + Debug,
 {
-    type Error = DecodeError;
     fn deserialize(
         header: &NetlinkHeader,
         payload: &[u8],
-    ) -> Result<Self, Self::Error> {
+    ) -> Result<Self, DecodeError> {
         GenlMessage::parse_with_param(payload, header.message_type)
     }
 }

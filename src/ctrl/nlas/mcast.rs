@@ -2,10 +2,10 @@
 
 use crate::constants::*;
 use netlink_packet_core::{
-    emit_u32, parse_string, parse_u32, DecodeError, Emitable, ErrorContext,
-    Nla, NlaBuffer, Parseable,
+    append_bytes, append_u32, parse_string, parse_u32, DecodeError, Emitable,
+    EncodeError, ErrorContext, Nla, NlaBuffer, Parseable,
 };
-use std::{mem::size_of_val, ops::Deref};
+use std::ops::Deref;
 
 pub(crate) struct McastGroupList(Vec<McastGroup>);
 
@@ -40,16 +40,12 @@ pub struct McastGroup {
 }
 
 impl Nla for McastGroup {
-    fn value_len(&self) -> usize {
-        self.nlas.as_slice().buffer_len()
-    }
-
     fn kind(&self) -> u16 {
         self.index + 1
     }
 
-    fn emit_value(&self, buffer: &mut [u8]) {
-        self.nlas.as_slice().emit(buffer);
+    fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
+        self.nlas.as_slice().emit(out)
     }
 }
 
@@ -60,14 +56,6 @@ pub enum McastGrpAttrs {
 }
 
 impl Nla for McastGrpAttrs {
-    fn value_len(&self) -> usize {
-        use McastGrpAttrs::*;
-        match self {
-            Name(s) => s.len() + 1,
-            Id(v) => size_of_val(v),
-        }
-    }
-
     fn kind(&self) -> u16 {
         use McastGrpAttrs::*;
         match self {
@@ -76,22 +64,21 @@ impl Nla for McastGrpAttrs {
         }
     }
 
-    fn emit_value(&self, buffer: &mut [u8]) {
+    fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
         use McastGrpAttrs::*;
         match self {
             Name(s) => {
-                buffer[..s.len()].copy_from_slice(s.as_bytes());
-                buffer[s.len()] = 0;
+                append_bytes(out, s.as_bytes());
+                out.push(0);
             }
-            Id(v) => emit_u32(buffer, *v).unwrap(),
+            Id(v) => append_u32(out, *v),
         }
+        Ok(())
     }
 }
 
-impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
-    for McastGrpAttrs
-{
-    fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
+impl<'a> Parseable<NlaBuffer<'a>> for McastGrpAttrs {
+    fn parse(buf: &NlaBuffer<'a>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {
             CTRL_ATTR_MCAST_GRP_NAME => Self::Name(

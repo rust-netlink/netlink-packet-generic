@@ -8,7 +8,7 @@
 use self::nlas::*;
 use crate::{constants::*, traits::*, GenlHeader};
 use netlink_packet_core::{
-    DecodeError, Emitable, ErrorContext, NlasIterator, Parseable,
+    DecodeError, Emitable, EncodeError, ErrorContext, NlasIterator, Parseable,
     ParseableParametrized,
 };
 use std::convert::{TryFrom, TryInto};
@@ -112,12 +112,8 @@ impl GenlFamily for GenlCtrl {
 }
 
 impl Emitable for GenlCtrl {
-    fn emit(&self, buffer: &mut [u8]) {
-        self.nlas.as_slice().emit(buffer)
-    }
-
-    fn buffer_len(&self) -> usize {
-        self.nlas.as_slice().buffer_len()
+    fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
+        self.nlas.as_slice().emit(out)
     }
 }
 
@@ -134,8 +130,8 @@ impl ParseableParametrized<[u8], GenlHeader> for GenlCtrl {
 }
 
 fn parse_ctrlnlas(buf: &[u8]) -> Result<Vec<GenlCtrlAttrs>, DecodeError> {
-    let nlas = NlasIterator::new(buf)
-        .map(|nla| nla.and_then(|nla| GenlCtrlAttrs::parse(&nla)))
+    let nlas = NlasIterator::new(buf)?
+        .map(|nla| GenlCtrlAttrs::parse(&nla))
         .collect::<Result<Vec<_>, _>>()
         .context("failed to parse control message attributes")?;
 
