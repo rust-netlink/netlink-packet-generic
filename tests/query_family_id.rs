@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 
-use netlink_packet_core::{NetlinkMessage, NetlinkPayload, NLM_F_REQUEST};
+use netlink_packet_core::{
+    Emitable, NetlinkMessage, NetlinkPayload, NLM_F_REQUEST,
+};
 use netlink_packet_generic::{
     ctrl::{nlas::GenlCtrlAttrs, GenlCtrl, GenlCtrlCmd},
     GenlMessage,
@@ -21,11 +23,10 @@ fn query_family_id() {
     genlmsg.finalize();
     let mut nlmsg = NetlinkMessage::from(genlmsg);
     nlmsg.header.flags = NLM_F_REQUEST;
-    nlmsg.finalize();
 
-    println!("Buffer length: {}", nlmsg.buffer_len());
-    let mut txbuf = vec![0u8; nlmsg.buffer_len()];
-    nlmsg.serialize(&mut txbuf);
+    let mut txbuf = Vec::new();
+    nlmsg.emit(&mut txbuf).unwrap();
+    println!("Buffer length: {}", txbuf.len());
 
     socket.send(&txbuf, 0).unwrap();
 

@@ -2,10 +2,10 @@
 
 use crate::constants::*;
 use netlink_packet_core::{
-    emit_u16, emit_u32, parse_string, parse_u16, parse_u32, DecodeError,
-    Emitable, ErrorContext, Nla, NlaBuffer, NlasIterator, Parseable,
+    append_bytes, append_u16, append_u32, parse_string, parse_u16, parse_u32,
+    DecodeError, Emitable, EncodeError, ErrorContext, Nla, NlaBuffer,
+    NlasIterator, Parseable,
 };
-use std::mem::size_of_val;
 
 mod mcast;
 mod oppolicy;
@@ -32,24 +32,6 @@ pub enum GenlCtrlAttrs {
 }
 
 impl Nla for GenlCtrlAttrs {
-    fn value_len(&self) -> usize {
-        use GenlCtrlAttrs::*;
-        match self {
-            FamilyId(v) => size_of_val(v),
-            FamilyName(s) => s.len() + 1,
-            Version(v) => size_of_val(v),
-            HdrSize(v) => size_of_val(v),
-            MaxAttr(v) => size_of_val(v),
-            Ops(nlas) => OpList::from(nlas).as_slice().buffer_len(),
-            McastGroups(nlas) => {
-                McastGroupList::from(nlas).as_slice().buffer_len()
-            }
-            Policy(nla) => nla.buffer_len(),
-            OpPolicy(nla) => nla.buffer_len(),
-            Op(v) => size_of_val(v),
-        }
-    }
-
     fn kind(&self) -> u16 {
         use GenlCtrlAttrs::*;
         match self {
@@ -66,34 +48,31 @@ impl Nla for GenlCtrlAttrs {
         }
     }
 
-    fn emit_value(&self, buffer: &mut [u8]) {
+    fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
         use GenlCtrlAttrs::*;
         match self {
-            FamilyId(v) => emit_u16(buffer, *v).unwrap(),
+            FamilyId(v) => append_u16(out, *v),
             FamilyName(s) => {
-                buffer[..s.len()].copy_from_slice(s.as_bytes());
-                buffer[s.len()] = 0;
+                append_bytes(out, s.as_bytes());
+                out.push(0);
             }
-            Version(v) => emit_u32(buffer, *v).unwrap(),
-            HdrSize(v) => emit_u32(buffer, *v).unwrap(),
-            MaxAttr(v) => emit_u32(buffer, *v).unwrap(),
-            Ops(nlas) => {
-                OpList::from(nlas).as_slice().emit(buffer);
-            }
+            Version(v) => append_u32(out, *v),
+            HdrSize(v) => append_u32(out, *v),
+            MaxAttr(v) => append_u32(out, *v),
+            Ops(nlas) => OpList::from(nlas).as_slice().emit(out)?,
             McastGroups(nlas) => {
-                McastGroupList::from(nlas).as_slice().emit(buffer);
+                McastGroupList::from(nlas).as_slice().emit(out)?
             }
-            Policy(nla) => nla.emit_value(buffer),
-            OpPolicy(nla) => nla.emit_value(buffer),
-            Op(v) => emit_u32(buffer, *v).unwrap(),
+            Policy(nla) => nla.emit(out)?,
+            OpPolicy(nla) => nla.emit(out)?,
+            Op(v) => append_u32(out, *v),
         }
+        Ok(())
     }
 }
 
-impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
-    for GenlCtrlAttrs
-{
-    fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
+impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlAttrs {
+    fn parse(buf: &NlaBuffer<'a>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {
             CTRL_ATTR_FAMILY_ID => Self::FamilyId(
@@ -117,44 +96,40 @@ impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
                     .context("invalid CTRL_ATTR_MAXATTR value")?,
             ),
             CTRL_ATTR_OPS => {
-                let ops = NlasIterator::new(payload)
+                let ops = NlasIterator::new(payload)?
                     .map(|nlas| {
-                        nlas.and_then(|nlas| {
-                            NlasIterator::new(nlas.value())
-                                .map(|nla| {
-                                    nla.and_then(|nla| OpAttrs::parse(&nla))
-                                })
-                                .collect::<Result<Vec<_>, _>>()
-                        })
+                        nlas.nlas()?
+                            .map(|nla| OpAttrs::parse(&nla))
+                            .collect::<Result<Vec<_>, _>>()
                     })
                     .collect::<Result<Vec<Vec<_>>, _>>()
                     .context("failed to parse CTRL_ATTR_OPS")?;
                 Self::Ops(ops)
             }
             CTRL_ATTR_MCAST_GROUPS => {
-                let groups = NlasIterator::new(payload)
+                let groups = NlasIterator::new(payload)?
                     .map(|nlas| {
-                        nlas.and_then(|nlas| {
-                            NlasIterator::new(nlas.value())
-                                .map(|nla| {
-                                    nla.and_then(|nla| {
-                                        McastGrpAttrs::parse(&nla)
-                                    })
-                                })
-                                .collect::<Result<Vec<_>, _>>()
-                        })
+                        nlas.nlas()?
+                            .map(|nla| McastGrpAttrs::parse(&nla))
+                            .collect::<Result<Vec<_>, _>>()
                     })
                     .collect::<Result<Vec<Vec<_>>, _>>()
                     .context("failed to parse CTRL_ATTR_MCAST_GROUPS")?;
                 Self::McastGroups(groups)
             }
             CTRL_ATTR_POLICY => Self::Policy(
-                PolicyAttr::parse(&NlaBuffer::new(payload))
-                    .context("failed to parse CTRL_ATTR_POLICY")?,
+                PolicyAttr::parse(
+                    &NlaBuffer::new(payload)
+                        .context("failed to parse CTRL_ATTR_POLICY")?,
+                )
+                .context("failed to parse CTRL_ATTR_POLICY")?,
             ),
             CTRL_ATTR_OP_POLICY => Self::OpPolicy(
-                OppolicyAttr::parse(&NlaBuffer::new(payload))
-                    .context("failed to parse CTRL_ATTR_OP_POLICY")?,
+                OppolicyAttr::parse(
+                    &NlaBuffer::new(payload)
+                        .context("failed to parse CTRL_ATTR_OP_POLICY")?,
+                )
+                .context("failed to parse CTRL_ATTR_OP_POLICY")?,
             ),
             CTRL_ATTR_OP => Self::Op(parse_u32(payload)?),
             kind => {
@@ -185,7 +160,7 @@ mod tests {
             1, 0, // Name kind
             b't', b'e', b's', b't', // Name
         ];
-        let nla_buffer = NlaBuffer::new_checked(&mcast_bytes[..])
+        let nla_buffer = NlaBuffer::new(&mcast_bytes[..])
             .expect("Failed to create NlaBuffer");
         let result_attr = GenlCtrlAttrs::parse(&nla_buffer)
             .expect("Failed to parse encoded McastGroups");
@@ -230,10 +205,10 @@ mod tests {
             b'g', b'r', b'o', b'u', b'p', b'2', 0, // Name
             0, // padding
         ];
-        let mut buf = vec![0u8; 100];
-        mcast_attr.emit(&mut buf);
+        let mut buf = Vec::new();
+        mcast_attr.emit(&mut buf).unwrap();
 
-        assert_eq!(&expected_bytes[..], &buf[..expected_bytes.len()]);
+        assert_eq!(&expected_bytes[..], &buf[..]);
     }
 
     #[test]
@@ -250,8 +225,8 @@ mod tests {
             2, 0, // Flags kind
             123, 0, 0, 0, // Flags
         ];
-        let nla_buffer = NlaBuffer::new_checked(&ops_bytes[..])
-            .expect("Failed to create NlaBuffer");
+        let nla_buffer =
+            NlaBuffer::new(&ops_bytes[..]).expect("Failed to create NlaBuffer");
         let result_attr = GenlCtrlAttrs::parse(&nla_buffer)
             .expect("Failed to parse encoded McastGroups");
         let expected_attr =
@@ -285,9 +260,43 @@ mod tests {
             2, 0, // Flags kind
             33, 0, 0, 0, // Flags
         ];
-        let mut buf = vec![0u8; 100];
-        ops.emit(&mut buf);
+        let mut buf = Vec::new();
+        ops.emit(&mut buf).unwrap();
 
-        assert_eq!(&expected_bytes[..], &buf[..expected_bytes.len()]);
+        assert_eq!(&expected_bytes[..], &buf[..]);
+    }
+
+    #[test]
+    fn policy_round_trip() {
+        let policy = GenlCtrlAttrs::Policy(PolicyAttr {
+            index: 1,
+            attr_policy: AttributePolicyAttr {
+                index: 1,
+                policies: vec![NlPolicyTypeAttrs::Type(NlaType::U32)],
+            },
+        });
+
+        let mut buf = Vec::new();
+        policy.emit(&mut buf).unwrap();
+
+        let nla_buffer = NlaBuffer::new(&buf).unwrap();
+        assert_eq!(policy, GenlCtrlAttrs::parse(&nla_buffer).unwrap());
+    }
+
+    #[test]
+    fn op_policy_round_trip() {
+        let policy = GenlCtrlAttrs::OpPolicy(OppolicyAttr {
+            cmd: 1,
+            policy_idx: vec![
+                OppolicyIndexAttr::Do(2),
+                OppolicyIndexAttr::Dump(3),
+            ],
+        });
+
+        let mut buf = Vec::new();
+        policy.emit(&mut buf).unwrap();
+
+        let nla_buffer = NlaBuffer::new(&buf).unwrap();
+        assert_eq!(policy, GenlCtrlAttrs::parse(&nla_buffer).unwrap());
     }
 }

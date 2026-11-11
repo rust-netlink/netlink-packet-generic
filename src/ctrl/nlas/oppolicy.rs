@@ -2,10 +2,9 @@
 
 use crate::constants::*;
 use netlink_packet_core::{
-    emit_u32, parse_u32, DecodeError, Emitable, ErrorContext, Nla, NlaBuffer,
-    NlasIterator, Parseable,
+    append_u32, parse_u32, DecodeError, Emitable, EncodeError, ErrorContext,
+    Nla, NlaBuffer, NlasIterator, Parseable,
 };
-use std::mem::size_of_val;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct OppolicyAttr {
@@ -14,16 +13,12 @@ pub struct OppolicyAttr {
 }
 
 impl Nla for OppolicyAttr {
-    fn value_len(&self) -> usize {
-        self.policy_idx.as_slice().buffer_len()
-    }
-
     fn kind(&self) -> u16 {
         self.cmd as u16
     }
 
-    fn emit_value(&self, buffer: &mut [u8]) {
-        self.policy_idx.as_slice().emit(buffer);
+    fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
+        self.policy_idx.as_slice().emit(out)
     }
 
     fn is_nested(&self) -> bool {
@@ -31,11 +26,10 @@ impl Nla for OppolicyAttr {
     }
 }
 
-impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>> for OppolicyAttr {
-    fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
-        let payload = buf.value();
-        let policy_idx = NlasIterator::new(payload)
-            .map(|nla| nla.and_then(|nla| OppolicyIndexAttr::parse(&nla)))
+impl<'a> Parseable<NlaBuffer<'a>> for OppolicyAttr {
+    fn parse(buf: &NlaBuffer<'a>) -> Result<Self, DecodeError> {
+        let policy_idx = NlasIterator::new(buf.value())?
+            .map(|nla| OppolicyIndexAttr::parse(&nla))
             .collect::<Result<Vec<_>, _>>()
             .context("failed to parse OppolicyAttr")?;
 
@@ -53,14 +47,6 @@ pub enum OppolicyIndexAttr {
 }
 
 impl Nla for OppolicyIndexAttr {
-    fn value_len(&self) -> usize {
-        use OppolicyIndexAttr::*;
-        match self {
-            Do(v) => size_of_val(v),
-            Dump(v) => size_of_val(v),
-        }
-    }
-
     fn kind(&self) -> u16 {
         use OppolicyIndexAttr::*;
         match self {
@@ -69,19 +55,18 @@ impl Nla for OppolicyIndexAttr {
         }
     }
 
-    fn emit_value(&self, buffer: &mut [u8]) {
+    fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
         use OppolicyIndexAttr::*;
         match self {
-            Do(v) => emit_u32(buffer, *v).unwrap(),
-            Dump(v) => emit_u32(buffer, *v).unwrap(),
+            Do(v) => append_u32(out, *v),
+            Dump(v) => append_u32(out, *v),
         }
+        Ok(())
     }
 }
 
-impl<'a, T: AsRef<[u8]> + ?Sized> Parseable<NlaBuffer<&'a T>>
-    for OppolicyIndexAttr
-{
-    fn parse(buf: &NlaBuffer<&'a T>) -> Result<Self, DecodeError> {
+impl<'a> Parseable<NlaBuffer<'a>> for OppolicyIndexAttr {
+    fn parse(buf: &NlaBuffer<'a>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {
             CTRL_ATTR_POLICY_DO => Self::Do(
