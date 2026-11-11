@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 
 use super::{append_nl_string, checked_index};
-use crate::constants::*;
 use netlink_packet_core::{
     append_u32, parse_string, parse_u32, DecodeError, Emitable, EncodeError,
     ErrorContext, Nla, NlaBuffer, Parseable,
 };
 use std::ops::Deref;
+
+const CTRL_ATTR_MCAST_GRP_NAME: u16 = 1;
+const CTRL_ATTR_MCAST_GRP_ID: u16 = 2;
 
 pub(crate) struct McastGroupList(Vec<McastGroup>);
 
@@ -39,9 +41,9 @@ impl TryFrom<&Vec<Vec<McastGrpAttrs>>> for McastGroupList {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct McastGroup {
-    pub index: u16,
-    pub nlas: Vec<McastGrpAttrs>,
+pub(crate) struct McastGroup {
+    index: u16,
+    nlas: Vec<McastGrpAttrs>,
 }
 
 impl Nla for McastGroup {

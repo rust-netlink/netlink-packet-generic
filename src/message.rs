@@ -2,7 +2,8 @@
 
 //! Message definition and method implementations
 
-use crate::{constants::GENL_HDRLEN, header::GenlHeader, traits::*};
+use crate::header::{GenlHeader, GENL_HDRLEN};
+use crate::traits::*;
 use netlink_packet_core::{
     DecodeError, Emitable, EncodeError, NetlinkDeserializable, NetlinkHeader,
     NetlinkMessagePayload, NetlinkPayload, ParseableParametrized,

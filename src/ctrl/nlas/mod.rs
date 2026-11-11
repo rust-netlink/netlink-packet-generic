@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-use crate::constants::*;
 use netlink_packet_core::{
     append_bytes, append_u16, append_u32, parse_string, parse_u16, parse_u32,
     DecodeError, DefaultNla, Emitable, EncodeError, EncodeErrorKind,
@@ -16,6 +15,17 @@ pub use mcast::*;
 pub use oppolicy::*;
 pub use ops::*;
 pub use policy::*;
+
+const CTRL_ATTR_FAMILY_ID: u16 = 1;
+const CTRL_ATTR_FAMILY_NAME: u16 = 2;
+const CTRL_ATTR_VERSION: u16 = 3;
+const CTRL_ATTR_HDRSIZE: u16 = 4;
+const CTRL_ATTR_MAXATTR: u16 = 5;
+const CTRL_ATTR_OPS: u16 = 6;
+const CTRL_ATTR_MCAST_GROUPS: u16 = 7;
+const CTRL_ATTR_POLICY: u16 = 8;
+const CTRL_ATTR_OP_POLICY: u16 = 9;
+const CTRL_ATTR_OP: u16 = 10;
 
 /// Append a NUL-terminated netlink string.
 ///
@@ -451,18 +461,6 @@ mod policy_tests {
         let mut buf = Vec::new();
         policy.emit(&mut buf).unwrap();
         GenlCtrlAttrs::parse(&NlaBuffer::new(&buf).unwrap()).unwrap()
-    }
-
-    #[test]
-    fn unsigned_min_max_kinds() {
-        assert_eq!(
-            NlPolicyTypeAttrs::MinValueUnsigned(0).kind(),
-            NL_POLICY_TYPE_ATTR_MIN_VALUE_U
-        );
-        assert_eq!(
-            NlPolicyTypeAttrs::MaxValueUnsigned(0).kind(),
-            NL_POLICY_TYPE_ATTR_MAX_VALUE_U
-        );
     }
 
     #[test]

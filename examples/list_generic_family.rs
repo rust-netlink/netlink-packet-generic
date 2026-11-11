@@ -4,8 +4,7 @@ use netlink_packet_core::{
     Emitable, NetlinkMessage, NetlinkPayload, NLM_F_DUMP, NLM_F_REQUEST,
 };
 use netlink_packet_generic::{
-    ctrl::{nlas::GenlCtrlAttrs, GenlCtrl, GenlCtrlCmd},
-    GenlMessage,
+    GenlCtrl, GenlCtrlAttrs, GenlCtrlCmd, GenlMessage,
 };
 use netlink_sys::{protocols::NETLINK_GENERIC, Socket, SocketAddr};
 

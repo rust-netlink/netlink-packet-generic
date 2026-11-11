@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 
 use super::checked_index;
-use crate::constants::*;
 use netlink_packet_core::{
     append_u32, parse_u32, DecodeError, Emitable, EncodeError, ErrorContext,
     Nla, NlaBuffer, Parseable,
 };
 use std::ops::Deref;
+
+const CTRL_ATTR_OP_ID: u16 = 1;
+const CTRL_ATTR_OP_FLAGS: u16 = 2;
 
 pub(crate) struct OpList(Vec<Op>);
 

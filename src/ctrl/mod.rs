@@ -5,16 +5,30 @@
 //! This module provides the definition of the controller packet.
 //! It also serves as an example for creating a generic family.
 
-use self::nlas::*;
-use crate::{constants::*, traits::*, GenlHeader};
+use crate::header::GenlHeader;
+use crate::traits::GenlFamily;
 use netlink_packet_core::{
     DecodeError, Emitable, EncodeError, ErrorContext, NlasIterator, Parseable,
     ParseableParametrized,
 };
 use std::convert::{TryFrom, TryInto};
 
-/// Netlink attributes for this family
-pub mod nlas;
+mod nlas;
+
+pub use self::nlas::*;
+
+const GENL_ID_CTRL: u16 = 16;
+
+const CTRL_CMD_NEWFAMILY: u8 = 1;
+const CTRL_CMD_DELFAMILY: u8 = 2;
+const CTRL_CMD_GETFAMILY: u8 = 3;
+const CTRL_CMD_NEWOPS: u8 = 4;
+const CTRL_CMD_DELOPS: u8 = 5;
+const CTRL_CMD_GETOPS: u8 = 6;
+const CTRL_CMD_NEWMCAST_GRP: u8 = 7;
+const CTRL_CMD_DELMCAST_GRP: u8 = 8;
+const CTRL_CMD_GETMCAST_GRP: u8 = 9;
+const CTRL_CMD_GETPOLICY: u8 = 10;
 
 /// Command code definition of Netlink controller (nlctrl) family
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -162,7 +176,7 @@ mod tests {
 
     #[test]
     fn unknown_ctrl_cmd_is_preserved() {
-        for value in [CTRL_CMD_UNSPEC, 200] {
+        for value in [0, 200] {
             let cmd = GenlCtrlCmd::try_from(value).unwrap();
             assert_eq!(cmd, GenlCtrlCmd::Unknown(value));
             assert_eq!(u8::from(cmd), value);
