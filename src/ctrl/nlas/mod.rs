@@ -3,7 +3,8 @@
 use netlink_packet_core::{
     append_bytes, append_u16, append_u32, parse_string, parse_u16, parse_u32,
     DecodeError, DefaultNla, Emitable, EncodeError, EncodeErrorKind,
-    ErrorContext, Nla, NlaBuffer, NlasIterator, Parseable,
+    ErrorContext, Nla, NlaBuffer, NlasIterator, Parseable, NLA_F_NESTED,
+    NLA_TYPE_MASK,
 };
 
 mod mcast;
@@ -57,15 +58,18 @@ pub(crate) fn append_nl_string(
 /// Convert a zero-based list index into the `u16` stored in an [`Op`] or
 /// [`McastGroup`].
 ///
-/// The emitted attribute kind is `index + 1`, so the largest usable index is
-/// `u16::MAX - 1`. Larger lists are rejected instead of wrapping.
+/// The emitted attribute kind is `index + 1`, which must fit the type field
+/// preserved by `NLA_TYPE_MASK`. Larger lists are rejected instead of being
+/// truncated to a different attribute kind.
 pub(crate) fn checked_index(index: usize) -> Result<u16, EncodeError> {
     let kind = index
         .checked_add(1)
         .and_then(|kind| u16::try_from(kind).ok())
+        .filter(|kind| *kind <= NLA_TYPE_MASK)
         .ok_or_else(|| {
             EncodeError::too_large(format!(
-                "netlink attribute list index {index} does not fit in u16"
+                "netlink attribute list index {index} does not fit in the \
+                 attribute type field"
             ))
         })?;
     Ok(kind - 1)
@@ -102,6 +106,16 @@ impl Nla for GenlCtrlAttrs {
             OpPolicy(_) => CTRL_ATTR_OP_POLICY,
             Op(_) => CTRL_ATTR_OP,
             Unknown(nla) => nla.kind(),
+        }
+    }
+
+    fn is_nested(&self) -> bool {
+        match self {
+            // The kernel marks CTRL_ATTR_POLICY and CTRL_ATTR_OP_POLICY as
+            // nested, but intentionally leaves CTRL_ATTR_OPS and
+            // CTRL_ATTR_MCAST_GROUPS unmarked.
+            Self::Policy(_) | Self::OpPolicy(_) => true,
+            _ => self.kind() & NLA_F_NESTED != 0,
         }
     }
 
@@ -354,6 +368,26 @@ mod tests {
         let nla_buffer = NlaBuffer::new(&buf).unwrap();
         assert_eq!(policy, GenlCtrlAttrs::parse(&nla_buffer).unwrap());
     }
+
+    #[test]
+    fn ctrl_attr_nesting_matches_kernel() {
+        let policy = GenlCtrlAttrs::Policy(PolicyAttr {
+            index: 0,
+            attr_policy: AttributePolicyAttr {
+                index: 1,
+                policies: vec![],
+            },
+        });
+        let op_policy = GenlCtrlAttrs::OpPolicy(OppolicyAttr {
+            cmd: 1,
+            policy_idx: vec![],
+        });
+
+        assert!(Nla::is_nested(&policy));
+        assert!(Nla::is_nested(&op_policy));
+        assert!(!Nla::is_nested(&GenlCtrlAttrs::Ops(vec![])));
+        assert!(!Nla::is_nested(&GenlCtrlAttrs::McastGroups(vec![])));
+    }
 }
 
 #[cfg(test)]
@@ -480,14 +514,13 @@ mod policy_tests {
     }
 
     #[test]
-    fn pad_and_byte_order_round_trip() {
+    fn byte_order_round_trip() {
         let policy = GenlCtrlAttrs::Policy(PolicyAttr {
             index: 3,
             attr_policy: AttributePolicyAttr {
                 index: 3,
                 policies: vec![
                     NlPolicyTypeAttrs::Type(NlaType::U64),
-                    NlPolicyTypeAttrs::Pad,
                     NlPolicyTypeAttrs::ByteOrder(-1),
                     NlPolicyTypeAttrs::MaxValueUnsigned(42),
                 ],
@@ -520,10 +553,24 @@ mod policy_tests {
             (NlaType::Invalid, 0u32),
             (NlaType::SInt, 16),
             (NlaType::UInt, 17),
+            (NlaType::Unknown(42), 42),
         ] {
             assert_eq!(u32::from(nla_type), value);
             assert_eq!(NlaType::try_from(value).unwrap(), nla_type);
         }
+    }
+
+    #[test]
+    fn unknown_nla_type_round_trip() {
+        let policy = GenlCtrlAttrs::Policy(PolicyAttr {
+            index: 6,
+            attr_policy: AttributePolicyAttr {
+                index: 6,
+                policies: vec![NlPolicyTypeAttrs::Type(NlaType::Unknown(42))],
+            },
+        });
+
+        assert_eq!(round_trip(policy.clone()), policy);
     }
 
     #[test]
@@ -566,10 +613,45 @@ mod unknown_attr_tests {
         assert_eq!(emitted, bytes);
     }
 
+    fn single_nla(kind: u16, value: &[u8]) -> Vec<u8> {
+        let mut bytes = Vec::new();
+        bytes.extend_from_slice(&((4 + value.len()) as u16).to_ne_bytes());
+        bytes.extend_from_slice(&kind.to_ne_bytes());
+        bytes.extend_from_slice(value);
+        bytes
+    }
+
     #[test]
-    fn checked_index_rejects_u16_overflow() {
+    fn unknown_nested_ctrl_attrs_round_trip() {
+        let bytes = single_nla(4242, &[1, 2, 3, 4]);
+        let buffer = NlaBuffer::new(&bytes).unwrap();
+        let expected = DefaultNla::new(4242, vec![1, 2, 3, 4]);
+
+        let mcast = McastGrpAttrs::parse(&buffer).unwrap();
+        assert_eq!(mcast, McastGrpAttrs::Unknown(expected.clone()));
+        let mut emitted = Vec::new();
+        mcast.emit(&mut emitted).unwrap();
+        assert_eq!(emitted, bytes);
+
+        let op = OpAttrs::parse(&buffer).unwrap();
+        assert_eq!(op, OpAttrs::Unknown(expected.clone()));
+        let mut emitted = Vec::new();
+        op.emit(&mut emitted).unwrap();
+        assert_eq!(emitted, bytes);
+
+        let op_policy = OppolicyIndexAttr::parse(&buffer).unwrap();
+        assert_eq!(op_policy, OppolicyIndexAttr::Unknown(expected));
+        let mut emitted = Vec::new();
+        op_policy.emit(&mut emitted).unwrap();
+        assert_eq!(emitted, bytes);
+    }
+
+    #[test]
+    fn checked_index_rejects_attribute_kind_overflow() {
         assert_eq!(checked_index(0).unwrap(), 0);
-        assert_eq!(checked_index(u16::MAX as usize - 1).unwrap(), u16::MAX - 1);
+        let max_index = NLA_TYPE_MASK as usize - 1;
+        assert_eq!(checked_index(max_index).unwrap(), NLA_TYPE_MASK - 1);
+        assert!(checked_index(max_index + 1).unwrap_err().is_too_large());
         assert!(checked_index(u16::MAX as usize).unwrap_err().is_too_large());
     }
 }

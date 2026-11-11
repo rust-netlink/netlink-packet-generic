@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 
 use netlink_packet_core::{
-    append_u32, parse_u32, DecodeError, Emitable, EncodeError, ErrorContext,
-    Nla, NlaBuffer, NlasIterator, Parseable,
+    append_bytes, append_u32, parse_u32, DecodeError, DefaultNla, Emitable,
+    EncodeError, ErrorContext, Nla, NlaBuffer, NlasIterator, Parseable,
 };
 
 const CTRL_ATTR_POLICY_DO: u16 = 1;
@@ -36,7 +36,12 @@ impl<'a> Parseable<NlaBuffer<'a>> for OppolicyAttr {
             .context("failed to parse OppolicyAttr")?;
 
         Ok(Self {
-            cmd: buf.kind() as u8,
+            cmd: u8::try_from(buf.kind()).map_err(|_| {
+                DecodeError::from(format!(
+                    "invalid op policy command attribute: {}",
+                    buf.kind()
+                ))
+            })?,
             policy_idx,
         })
     }
@@ -47,6 +52,7 @@ impl<'a> Parseable<NlaBuffer<'a>> for OppolicyAttr {
 pub enum OppolicyIndexAttr {
     Do(u32),
     Dump(u32),
+    Unknown(DefaultNla),
 }
 
 impl Nla for OppolicyIndexAttr {
@@ -55,6 +61,7 @@ impl Nla for OppolicyIndexAttr {
         match self {
             Do(_) => CTRL_ATTR_POLICY_DO,
             Dump(_) => CTRL_ATTR_POLICY_DUMP,
+            Unknown(nla) => nla.kind(),
         }
     }
 
@@ -63,6 +70,7 @@ impl Nla for OppolicyIndexAttr {
         match self {
             Do(v) => append_u32(out, *v),
             Dump(v) => append_u32(out, *v),
+            Unknown(nla) => append_bytes(out, nla.value()),
         }
         Ok(())
     }
@@ -80,11 +88,7 @@ impl<'a> Parseable<NlaBuffer<'a>> for OppolicyIndexAttr {
                 parse_u32(payload)
                     .context("invalid CTRL_ATTR_POLICY_DUMP value")?,
             ),
-            kind => {
-                return Err(DecodeError::from(format!(
-                    "Unknown NLA type: {kind}"
-                )))
-            }
+            _ => Self::Unknown(DefaultNla::parse(buf)?),
         })
     }
 }

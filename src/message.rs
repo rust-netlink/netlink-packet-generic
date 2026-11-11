@@ -4,14 +4,12 @@
 
 use crate::header::{GenlHeader, GENL_HDRLEN};
 use crate::traits::*;
+#[cfg(doc)]
+use netlink_packet_core::NetlinkMessage;
 use netlink_packet_core::{
     DecodeError, Emitable, EncodeError, NetlinkDeserializable, NetlinkHeader,
     NetlinkMessagePayload, NetlinkPayload, ParseableParametrized,
 };
-use std::fmt::Debug;
-
-#[cfg(doc)]
-use netlink_packet_core::NetlinkMessage;
 
 /// Represent the generic netlink messages
 ///
@@ -135,7 +133,7 @@ where
 
 impl<F> Emitable for GenlMessage<F>
 where
-    F: GenlFamily + Emitable + Debug,
+    F: GenlFamily + Emitable,
 {
     fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
         self.header.emit(out)?;
@@ -145,7 +143,7 @@ where
 
 impl<F> NetlinkMessagePayload for GenlMessage<F>
 where
-    F: GenlFamily + Emitable + Debug,
+    F: GenlFamily + Emitable,
 {
     fn message_type(&self) -> u16 {
         self.family_id()
@@ -154,7 +152,7 @@ where
 
 impl<F> NetlinkDeserializable for GenlMessage<F>
 where
-    F: ParseableParametrized<[u8], GenlHeader> + Debug,
+    F: ParseableParametrized<[u8], GenlHeader>,
 {
     fn deserialize(
         header: &NetlinkHeader,
@@ -166,7 +164,7 @@ where
 
 impl<F> ParseableParametrized<[u8], u16> for GenlMessage<F>
 where
-    F: ParseableParametrized<[u8], GenlHeader> + Debug,
+    F: ParseableParametrized<[u8], GenlHeader>,
 {
     fn parse_with_param(
         buf: &[u8],
@@ -182,10 +180,7 @@ where
     }
 }
 
-impl<F> From<GenlMessage<F>> for NetlinkPayload<GenlMessage<F>>
-where
-    F: Debug,
-{
+impl<F> From<GenlMessage<F>> for NetlinkPayload<GenlMessage<F>> {
     fn from(message: GenlMessage<F>) -> Self {
         NetlinkPayload::InnerMessage(message)
     }

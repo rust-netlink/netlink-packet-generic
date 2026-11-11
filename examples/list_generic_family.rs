@@ -28,13 +28,10 @@ fn main() {
 
     socket.send(&txbuf, 0).unwrap();
 
-    let mut rxbuf = Vec::with_capacity(8192);
-    let mut offset = 0;
-    let mut size = 0;
     'outer: loop {
-        size += socket.recv(&mut rxbuf, 0).unwrap();
-
-        loop {
+        let (rxbuf, _addr) = socket.recv_from_full().unwrap();
+        let mut offset = 0;
+        while offset < rxbuf.len() {
             let buf = &rxbuf[offset..];
             // Parse the message
             let msg = <NetlinkMessage<GenlMessage<GenlCtrl>>>::deserialize(buf)
@@ -55,9 +52,6 @@ fn main() {
             }
 
             offset += msg.header.length as usize;
-            if offset == size || msg.header.length == 0 {
-                break;
-            }
         }
     }
 }

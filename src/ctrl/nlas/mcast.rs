@@ -2,8 +2,8 @@
 
 use super::{append_nl_string, checked_index};
 use netlink_packet_core::{
-    append_u32, parse_string, parse_u32, DecodeError, Emitable, EncodeError,
-    ErrorContext, Nla, NlaBuffer, Parseable,
+    append_bytes, append_u32, parse_string, parse_u32, DecodeError, DefaultNla,
+    Emitable, EncodeError, ErrorContext, Nla, NlaBuffer, Parseable,
 };
 use std::ops::Deref;
 
@@ -61,6 +61,7 @@ impl Nla for McastGroup {
 pub enum McastGrpAttrs {
     Name(String),
     Id(u32),
+    Unknown(DefaultNla),
 }
 
 impl Nla for McastGrpAttrs {
@@ -69,6 +70,7 @@ impl Nla for McastGrpAttrs {
         match self {
             Name(_) => CTRL_ATTR_MCAST_GRP_NAME,
             Id(_) => CTRL_ATTR_MCAST_GRP_ID,
+            Unknown(nla) => nla.kind(),
         }
     }
 
@@ -77,6 +79,7 @@ impl Nla for McastGrpAttrs {
         match self {
             Name(s) => append_nl_string(out, s)?,
             Id(v) => append_u32(out, *v),
+            Unknown(nla) => append_bytes(out, nla.value()),
         }
         Ok(())
     }
@@ -94,11 +97,7 @@ impl<'a> Parseable<NlaBuffer<'a>> for McastGrpAttrs {
                 parse_u32(payload)
                     .context("invalid CTRL_ATTR_MCAST_GRP_ID value")?,
             ),
-            kind => {
-                return Err(DecodeError::from(format!(
-                    "Unknown NLA type: {kind}"
-                )))
-            }
+            _ => Self::Unknown(DefaultNla::parse(buf)?),
         })
     }
 }

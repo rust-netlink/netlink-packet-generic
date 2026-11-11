@@ -2,8 +2,8 @@
 
 use super::checked_index;
 use netlink_packet_core::{
-    append_u32, parse_u32, DecodeError, Emitable, EncodeError, ErrorContext,
-    Nla, NlaBuffer, Parseable,
+    append_bytes, append_u32, parse_u32, DecodeError, DefaultNla, Emitable,
+    EncodeError, ErrorContext, Nla, NlaBuffer, Parseable,
 };
 use std::ops::Deref;
 
@@ -60,6 +60,7 @@ impl Nla for Op {
 pub enum OpAttrs {
     Id(u32),
     Flags(u32),
+    Unknown(DefaultNla),
 }
 
 impl Nla for OpAttrs {
@@ -68,6 +69,7 @@ impl Nla for OpAttrs {
         match self {
             Id(_) => CTRL_ATTR_OP_ID,
             Flags(_) => CTRL_ATTR_OP_FLAGS,
+            Unknown(nla) => nla.kind(),
         }
     }
 
@@ -76,6 +78,7 @@ impl Nla for OpAttrs {
         match self {
             Id(v) => append_u32(out, *v),
             Flags(v) => append_u32(out, *v),
+            Unknown(nla) => append_bytes(out, nla.value()),
         }
         Ok(())
     }
@@ -92,11 +95,7 @@ impl<'a> Parseable<NlaBuffer<'a>> for OpAttrs {
                 parse_u32(payload)
                     .context("invalid CTRL_ATTR_OP_FLAGS value")?,
             ),
-            kind => {
-                return Err(DecodeError::from(format!(
-                    "Unknown NLA type: {kind}"
-                )))
-            }
+            _ => Self::Unknown(DefaultNla::parse(buf)?),
         })
     }
 }
