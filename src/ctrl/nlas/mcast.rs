@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 
+use super::append_nl_string;
 use crate::constants::*;
 use netlink_packet_core::{
-    append_bytes, append_u32, parse_string, parse_u32, DecodeError, Emitable,
-    EncodeError, ErrorContext, Nla, NlaBuffer, Parseable,
+    append_u32, parse_string, parse_u32, DecodeError, Emitable, EncodeError,
+    ErrorContext, Nla, NlaBuffer, Parseable,
 };
 use std::ops::Deref;
 
@@ -67,10 +68,7 @@ impl Nla for McastGrpAttrs {
     fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
         use McastGrpAttrs::*;
         match self {
-            Name(s) => {
-                append_bytes(out, s.as_bytes());
-                out.push(0);
-            }
+            Name(s) => append_nl_string(out, s)?,
             Id(v) => append_u32(out, *v),
         }
         Ok(())
