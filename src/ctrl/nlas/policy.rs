@@ -82,6 +82,7 @@ impl<'a> Parseable<NlaBuffer<'a>> for AttributePolicyAttr {
 // PolicyTypeAttrs
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum NlPolicyTypeAttrs {
     Type(NlaType),
     MinValueSigned(i64),
@@ -204,6 +205,7 @@ impl<'a> Parseable<NlaBuffer<'a>> for NlPolicyTypeAttrs {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum NlaType {
     Invalid,
     Flag,

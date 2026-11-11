@@ -18,6 +18,7 @@ pub mod nlas;
 
 /// Command code definition of Netlink controller (nlctrl) family
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum GenlCtrlCmd {
     /// Notify from event
     NewFamily,
@@ -39,6 +40,8 @@ pub enum GenlCtrlCmd {
     GetMcastGrp,
     /// Request to get family policy
     GetPolicy,
+    /// A command code that is not known to this crate
+    Unknown(u8),
 }
 
 impl From<GenlCtrlCmd> for u8 {
@@ -55,6 +58,7 @@ impl From<GenlCtrlCmd> for u8 {
             DelMcastGrp => CTRL_CMD_DELMCAST_GRP,
             GetMcastGrp => CTRL_CMD_GETMCAST_GRP,
             GetPolicy => CTRL_CMD_GETPOLICY,
+            Unknown(cmd) => cmd,
         }
     }
 }
@@ -75,11 +79,7 @@ impl TryFrom<u8> for GenlCtrlCmd {
             CTRL_CMD_DELMCAST_GRP => DelMcastGrp,
             CTRL_CMD_GETMCAST_GRP => GetMcastGrp,
             CTRL_CMD_GETPOLICY => GetPolicy,
-            cmd => {
-                return Err(DecodeError::from(format!(
-                    "Unknown control command: {cmd}"
-                )))
-            }
+            cmd => Unknown(cmd),
         })
     }
 }
@@ -136,4 +136,50 @@ fn parse_ctrlnlas(buf: &[u8]) -> Result<Vec<GenlCtrlAttrs>, DecodeError> {
         .context("failed to parse control message attributes")?;
 
     Ok(nlas)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ctrl_cmd_round_trip() {
+        for cmd in [
+            GenlCtrlCmd::NewFamily,
+            GenlCtrlCmd::DelFamily,
+            GenlCtrlCmd::GetFamily,
+            GenlCtrlCmd::NewOps,
+            GenlCtrlCmd::DelOps,
+            GenlCtrlCmd::GetOps,
+            GenlCtrlCmd::NewMcastGrp,
+            GenlCtrlCmd::DelMcastGrp,
+            GenlCtrlCmd::GetMcastGrp,
+            GenlCtrlCmd::GetPolicy,
+        ] {
+            assert_eq!(GenlCtrlCmd::try_from(u8::from(cmd)).unwrap(), cmd);
+        }
+    }
+
+    #[test]
+    fn unknown_ctrl_cmd_is_preserved() {
+        for value in [CTRL_CMD_UNSPEC, 200] {
+            let cmd = GenlCtrlCmd::try_from(value).unwrap();
+            assert_eq!(cmd, GenlCtrlCmd::Unknown(value));
+            assert_eq!(u8::from(cmd), value);
+        }
+    }
+
+    #[test]
+    fn message_with_unknown_ctrl_cmd_parses() {
+        let parsed = GenlCtrl::parse_with_param(
+            &[],
+            GenlHeader {
+                cmd: 200,
+                version: 0,
+            },
+        )
+        .unwrap();
+        assert_eq!(parsed.cmd, GenlCtrlCmd::Unknown(200));
+        assert!(parsed.nlas.is_empty());
+    }
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-use super::append_nl_string;
+use super::{append_nl_string, checked_index};
 use crate::constants::*;
 use netlink_packet_core::{
     append_u32, parse_string, parse_u32, DecodeError, Emitable, EncodeError,
@@ -18,19 +18,23 @@ impl Deref for McastGroupList {
     }
 }
 
-impl From<&Vec<Vec<McastGrpAttrs>>> for McastGroupList {
-    fn from(groups: &Vec<Vec<McastGrpAttrs>>) -> Self {
-        Self(
+impl TryFrom<&Vec<Vec<McastGrpAttrs>>> for McastGroupList {
+    type Error = EncodeError;
+
+    fn try_from(groups: &Vec<Vec<McastGrpAttrs>>) -> Result<Self, Self::Error> {
+        Ok(Self(
             groups
                 .iter()
                 .cloned()
                 .enumerate()
-                .map(|(index, nlas)| McastGroup {
-                    index: index as u16,
-                    nlas,
+                .map(|(index, nlas)| {
+                    Ok(McastGroup {
+                        index: checked_index(index)?,
+                        nlas,
+                    })
                 })
-                .collect(),
-        )
+                .collect::<Result<Vec<_>, EncodeError>>()?,
+        ))
     }
 }
 
@@ -51,6 +55,7 @@ impl Nla for McastGroup {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum McastGrpAttrs {
     Name(String),
     Id(u32),
