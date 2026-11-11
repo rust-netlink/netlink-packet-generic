@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install Rust Stable
         run: |
@@ -27,6 +27,13 @@ jobs:
       - name: Build examples
         run: cargo build --examples
 
+      - name: Test
+        run: cargo test --all-features
+
+      - name: Check documentation
+        run: |
+          RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --all-features
+
       - name: Test and Generate code coverage
         run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
 
@@ -36,3 +43,18 @@ jobs:
           files: lcov.info
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  msrv:
+    name: MSRV (1.77)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust 1.77
+        run: |
+          rustup toolchain install 1.77 --profile minimal
+          rustup override set 1.77
+
+      - name: Check
+        run: cargo check --lib --all-features
