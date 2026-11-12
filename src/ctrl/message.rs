@@ -121,7 +121,7 @@ impl GenlFamily for GenlCtrlMessage {
     }
 
     fn version(&self) -> u8 {
-        2
+        0
     }
 }
 
