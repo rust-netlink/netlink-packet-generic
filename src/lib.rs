@@ -75,8 +75,9 @@ mod traits;
 pub use self::ctrl::{
     GenlCtrlAttr, GenlCtrlCmd, GenlCtrlMcastGroup, GenlCtrlMcastGroupSet,
     GenlCtrlMessage, GenlCtrlOp, GenlCtrlOpFlags, GenlCtrlOpPolicy,
-    GenlCtrlOpPolicyIndex, GenlCtrlOpSet, GenlCtrlPolicy, GenlCtrlPolicyEntry,
-    GenlCtrlPolicySet, GenlCtrlPolicyType,
+    GenlCtrlOpPolicyIndex, GenlCtrlOpSet, GenlCtrlPolicy,
+    GenlCtrlPolicyByteOrder, GenlCtrlPolicyEntry, GenlCtrlPolicySet,
+    GenlCtrlPolicyType,
 };
 pub use self::header::GenlHeader;
 pub use self::message::GenlMessage;

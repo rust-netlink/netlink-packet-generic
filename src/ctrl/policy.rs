@@ -39,6 +39,9 @@ const NL_POLICY_TYPE_ATTR_BITFIELD32_MASK: u16 = 10;
 const NL_POLICY_TYPE_ATTR_MASK: u16 = 12;
 const NL_POLICY_TYPE_ATTR_BYTE_ORDER: u16 = 13;
 
+const NL_POLICY_BYTE_ORDER_HOST: u32 = 0;
+const NL_POLICY_BYTE_ORDER_BIG_ENDIAN: u32 = 1;
+
 // GenlCtrlPolicySet
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -119,8 +122,47 @@ pub enum GenlCtrlPolicy {
     PolicyMaxType(u32),
     Bitfield32Mask(u32),
     Mask(u64),
-    ByteOrder(u32),
+    ByteOrder(GenlCtrlPolicyByteOrder),
     Unknown(DefaultNla),
+}
+
+/// Byte order of an integer policy attribute
+/// (`enum netlink_policy_byte_order`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum GenlCtrlPolicyByteOrder {
+    /// Host byte order.
+    Host,
+    /// Big endian (network byte order).
+    BigEndian,
+    /// A byte order that is not known to this crate.
+    Unknown(u32),
+}
+
+impl From<GenlCtrlPolicyByteOrder> for u32 {
+    fn from(byte_order: GenlCtrlPolicyByteOrder) -> u32 {
+        match byte_order {
+            GenlCtrlPolicyByteOrder::Host => NL_POLICY_BYTE_ORDER_HOST,
+            GenlCtrlPolicyByteOrder::BigEndian => {
+                NL_POLICY_BYTE_ORDER_BIG_ENDIAN
+            }
+            GenlCtrlPolicyByteOrder::Unknown(value) => value,
+        }
+    }
+}
+
+impl TryFrom<u32> for GenlCtrlPolicyByteOrder {
+    type Error = DecodeError;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        Ok(match value {
+            NL_POLICY_BYTE_ORDER_HOST => GenlCtrlPolicyByteOrder::Host,
+            NL_POLICY_BYTE_ORDER_BIG_ENDIAN => {
+                GenlCtrlPolicyByteOrder::BigEndian
+            }
+            value => GenlCtrlPolicyByteOrder::Unknown(value),
+        })
+    }
 }
 
 impl Nla for GenlCtrlPolicy {
@@ -157,7 +199,7 @@ impl Nla for GenlCtrlPolicy {
             PolicyMaxType(v) => append_u32(out, *v),
             Bitfield32Mask(v) => append_u32(out, *v),
             Mask(v) => append_u64(out, *v),
-            ByteOrder(v) => append_u32(out, *v),
+            ByteOrder(v) => append_u32(out, u32::from(*v)),
             Unknown(nla) => append_bytes(out, nla.value()),
         }
         Ok(())
@@ -216,8 +258,12 @@ impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlPolicy {
                     .context("invalid NL_POLICY_TYPE_ATTR_MASK value")?,
             ),
             NL_POLICY_TYPE_ATTR_BYTE_ORDER => Self::ByteOrder(
-                parse_u32(payload)
-                    .context("invalid NL_POLICY_TYPE_ATTR_BYTE_ORDER value")?,
+                GenlCtrlPolicyByteOrder::try_from(
+                    parse_u32(payload).context(
+                        "invalid NL_POLICY_TYPE_ATTR_BYTE_ORDER value",
+                    )?,
+                )
+                .context("invalid NL_POLICY_TYPE_ATTR_BYTE_ORDER value")?,
             ),
             _ => Self::Unknown(DefaultNla::parse(buf)?),
         })
