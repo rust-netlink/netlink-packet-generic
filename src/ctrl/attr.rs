@@ -532,7 +532,8 @@ mod string_validation_tests {
 mod policy_tests {
     use super::*;
     use crate::ctrl::policy::{
-        GenlCtrlPolicy, GenlCtrlPolicyEntry, GenlCtrlPolicyType,
+        GenlCtrlPolicy, GenlCtrlPolicyByteOrder, GenlCtrlPolicyEntry,
+        GenlCtrlPolicyType,
     };
 
     fn round_trip(policy: GenlCtrlAttr) -> GenlCtrlAttr {
@@ -565,7 +566,9 @@ mod policy_tests {
                 index: 3,
                 attrs: vec![
                     GenlCtrlPolicy::Type(GenlCtrlPolicyType::U64),
-                    GenlCtrlPolicy::ByteOrder(1),
+                    GenlCtrlPolicy::ByteOrder(
+                        GenlCtrlPolicyByteOrder::BigEndian,
+                    ),
                     GenlCtrlPolicy::MaxValueUnsigned(42),
                 ],
             }],
@@ -579,13 +582,18 @@ mod policy_tests {
         let mut bytes = Vec::new();
         bytes.extend_from_slice(&8u16.to_ne_bytes());
         bytes.extend_from_slice(
-            &GenlCtrlPolicy::ByteOrder(1).kind().to_ne_bytes(),
+            &GenlCtrlPolicy::ByteOrder(GenlCtrlPolicyByteOrder::BigEndian)
+                .kind()
+                .to_ne_bytes(),
         );
         bytes.extend_from_slice(&1u32.to_ne_bytes());
 
         let parsed = GenlCtrlPolicy::parse(&NlaBuffer::new(&bytes).unwrap())
             .expect("kernel emits NL_POLICY_TYPE_ATTR_BYTE_ORDER as u32");
-        assert_eq!(parsed, GenlCtrlPolicy::ByteOrder(1));
+        assert_eq!(
+            parsed,
+            GenlCtrlPolicy::ByteOrder(GenlCtrlPolicyByteOrder::BigEndian)
+        );
 
         let mut emitted = Vec::new();
         parsed.emit(&mut emitted).unwrap();

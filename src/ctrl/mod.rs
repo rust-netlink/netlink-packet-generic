@@ -18,5 +18,6 @@ pub use self::message::{GenlCtrlCmd, GenlCtrlMessage};
 pub use self::oppolicy::{GenlCtrlOpPolicy, GenlCtrlOpPolicyIndex};
 pub use self::ops::{GenlCtrlOp, GenlCtrlOpFlags, GenlCtrlOpSet};
 pub use self::policy::{
-    GenlCtrlPolicy, GenlCtrlPolicyEntry, GenlCtrlPolicySet, GenlCtrlPolicyType,
+    GenlCtrlPolicy, GenlCtrlPolicyByteOrder, GenlCtrlPolicyEntry,
+    GenlCtrlPolicySet, GenlCtrlPolicyType,
 };
