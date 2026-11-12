@@ -15,10 +15,10 @@ fn main() {
     socket.bind_auto().unwrap();
     socket.connect(&SocketAddr::new(0, 0)).unwrap();
 
-    let mut genlmsg = GenlMessage::from_payload(GenlCtrlMessage {
-        cmd: GenlCtrlCmd::GetFamily,
-        nlas: vec![],
-    });
+    let mut genlmsg = GenlMessage::from_payload(GenlCtrlMessage::new(
+        GenlCtrlCmd::GetFamily,
+        vec![],
+    ));
     genlmsg.finalize();
     let mut nlmsg = NetlinkMessage::from(genlmsg);
     nlmsg.header.flags = NLM_F_REQUEST | NLM_F_DUMP;
