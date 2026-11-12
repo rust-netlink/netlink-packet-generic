@@ -45,9 +45,16 @@ const NL_POLICY_BYTE_ORDER_BIG_ENDIAN: u32 = 1;
 // GenlCtrlPolicySet
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct GenlCtrlPolicySet {
     pub index: u16,
     pub attrs: Vec<GenlCtrlPolicyEntry>,
+}
+
+impl GenlCtrlPolicySet {
+    pub fn new(index: u16, attrs: Vec<GenlCtrlPolicyEntry>) -> Self {
+        Self { index, attrs }
+    }
 }
 
 impl Nla for GenlCtrlPolicySet {
@@ -77,9 +84,16 @@ impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlPolicySet {
 // GenlCtrlPolicyEntry
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct GenlCtrlPolicyEntry {
     pub index: u16,
     pub attrs: Vec<GenlCtrlPolicy>,
+}
+
+impl GenlCtrlPolicyEntry {
+    pub fn new(index: u16, attrs: Vec<GenlCtrlPolicy>) -> Self {
+        Self { index, attrs }
+    }
 }
 
 impl Nla for GenlCtrlPolicyEntry {
