@@ -1,57 +1,47 @@
 // SPDX-License-Identifier: MIT
 
-use super::attr::checked_index;
 use netlink_packet_core::{
     append_bytes, append_u32, parse_u32, DecodeError, DefaultNla, Emitable,
     EncodeError, ErrorContext, Nla, NlaBuffer, Parseable,
 };
-use std::ops::Deref;
 
 const CTRL_ATTR_OP_ID: u16 = 1;
 const CTRL_ATTR_OP_FLAGS: u16 = 2;
 
-pub(crate) struct OpList(Vec<Op>);
-
-impl Deref for OpList {
-    type Target = Vec<Op>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl TryFrom<&Vec<Vec<GenlCtrlOp>>> for OpList {
-    type Error = EncodeError;
-
-    fn try_from(ops: &Vec<Vec<GenlCtrlOp>>) -> Result<Self, Self::Error> {
-        Ok(Self(
-            ops.iter()
-                .cloned()
-                .enumerate()
-                .map(|(index, nlas)| {
-                    Ok(Op {
-                        index: checked_index(index)?,
-                        nlas,
-                    })
-                })
-                .collect::<Result<Vec<_>, EncodeError>>()?,
-        ))
-    }
-}
-
+/// A nested operation entry in [`super::GenlCtrlAttr::Ops`].
+///
+/// `index` is the attribute type used by the kernel for the nested container.
+/// The kernel numbers operations starting from 1.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Op {
-    pub(crate) index: u16,
-    pub(crate) nlas: Vec<GenlCtrlOp>,
+#[non_exhaustive]
+pub struct GenlCtrlOpSet {
+    pub index: u16,
+    pub attrs: Vec<GenlCtrlOp>,
 }
 
-impl Nla for Op {
+impl GenlCtrlOpSet {
+    pub fn new(index: u16, attrs: Vec<GenlCtrlOp>) -> Self {
+        Self { index, attrs }
+    }
+}
+
+impl Nla for GenlCtrlOpSet {
     fn kind(&self) -> u16 {
-        self.index + 1
+        self.index
     }
 
     fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
-        self.nlas.as_slice().emit(out)
+        self.attrs.as_slice().emit(out)
+    }
+}
+
+impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlOpSet {
+    fn parse(buf: &NlaBuffer<'a>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            index: buf.kind(),
+            attrs: Vec::<GenlCtrlOp>::parse(buf)
+                .context("failed to parse generic netlink operation")?,
+        })
     }
 }
 

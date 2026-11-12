@@ -9,7 +9,7 @@ use netlink_packet_core::{
 
 use super::mcast::{GenlCtrlMcastGroup, McastGroupList};
 use super::oppolicy::GenlCtrlOpPolicy;
-use super::ops::{GenlCtrlOp, OpList};
+use super::ops::GenlCtrlOpSet;
 use super::policy::GenlCtrlPolicySet;
 
 const CTRL_ATTR_FAMILY_ID: u16 = 1;
@@ -86,7 +86,7 @@ pub enum GenlCtrlAttr {
     Version(u32),
     HdrSize(u32),
     MaxAttr(u32),
-    Ops(Vec<Vec<GenlCtrlOp>>),
+    Ops(Vec<GenlCtrlOpSet>),
     McastGroups(Vec<Vec<GenlCtrlMcastGroup>>),
     Policy(Vec<GenlCtrlPolicySet>),
     OpPolicy(Vec<GenlCtrlOpPolicy>),
@@ -130,7 +130,7 @@ impl Nla for GenlCtrlAttr {
             Version(v) => append_u32(out, *v),
             HdrSize(v) => append_u32(out, *v),
             MaxAttr(v) => append_u32(out, *v),
-            Ops(nlas) => OpList::try_from(nlas)?.as_slice().emit(out)?,
+            Ops(nlas) => nlas.as_slice().emit(out)?,
             McastGroups(nlas) => {
                 McastGroupList::try_from(nlas)?.as_slice().emit(out)?
             }
@@ -169,12 +169,8 @@ impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlAttr {
             ),
             CTRL_ATTR_OPS => {
                 let ops = NlasIterator::new(payload)?
-                    .map(|nlas| {
-                        nlas.nlas()?
-                            .map(|nla| GenlCtrlOp::parse(&nla))
-                            .collect::<Result<Vec<_>, _>>()
-                    })
-                    .collect::<Result<Vec<Vec<_>>, _>>()
+                    .map(|nla| GenlCtrlOpSet::parse(&nla))
+                    .collect::<Result<Vec<_>, _>>()
                     .context("failed to parse CTRL_ATTR_OPS")?;
                 Self::Ops(ops)
             }
@@ -207,6 +203,7 @@ impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlAttr {
 mod tests {
     use super::*;
     use crate::ctrl::oppolicy::GenlCtrlOpPolicyIndex;
+    use crate::ctrl::ops::GenlCtrlOp;
     use crate::ctrl::policy::{
         GenlCtrlPolicy, GenlCtrlPolicyEntry, GenlCtrlPolicyType,
     };
@@ -298,10 +295,10 @@ mod tests {
             NlaBuffer::new(&ops_bytes[..]).expect("Failed to create NlaBuffer");
         let result_attr = GenlCtrlAttr::parse(&nla_buffer)
             .expect("Failed to parse encoded McastGroups");
-        let expected_attr = GenlCtrlAttr::Ops(vec![vec![
-            GenlCtrlOp::Id(1),
-            GenlCtrlOp::Flags(123),
-        ]]);
+        let expected_attr = GenlCtrlAttr::Ops(vec![GenlCtrlOpSet::new(
+            0,
+            vec![GenlCtrlOp::Id(1), GenlCtrlOp::Flags(123)],
+        )]);
         assert_eq!(expected_attr, result_attr);
     }
 
@@ -309,8 +306,14 @@ mod tests {
     #[test]
     fn ops_emit() {
         let ops = GenlCtrlAttr::Ops(vec![
-            vec![GenlCtrlOp::Id(1), GenlCtrlOp::Flags(11)],
-            vec![GenlCtrlOp::Id(3), GenlCtrlOp::Flags(33)],
+            GenlCtrlOpSet::new(
+                1,
+                vec![GenlCtrlOp::Id(1), GenlCtrlOp::Flags(11)],
+            ),
+            GenlCtrlOpSet::new(
+                2,
+                vec![GenlCtrlOp::Id(3), GenlCtrlOp::Flags(33)],
+            ),
         ]);
         let expected_bytes: [u8; 44] = [
             44, 0, // Netlink header length
@@ -619,6 +622,7 @@ mod policy_tests {
 mod unknown_attr_tests {
     use super::*;
     use crate::ctrl::oppolicy::GenlCtrlOpPolicyIndex;
+    use crate::ctrl::ops::GenlCtrlOp;
 
     #[test]
     fn unknown_ctrl_attr_round_trip() {

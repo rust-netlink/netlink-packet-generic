@@ -17,7 +17,7 @@ use netlink_packet_core::{
 };
 use netlink_packet_generic::{
     GenlCtrlAttr, GenlCtrlCmd, GenlCtrlMcastGroup, GenlCtrlMessage, GenlCtrlOp,
-    GenlCtrlOpPolicy, GenlCtrlOpPolicyIndex, GenlCtrlPolicy,
+    GenlCtrlOpPolicy, GenlCtrlOpPolicyIndex, GenlCtrlOpSet, GenlCtrlPolicy,
     GenlCtrlPolicyEntry, GenlCtrlPolicySet, GenlCtrlPolicyType, GenlHeader,
     GenlMessage,
 };
@@ -84,8 +84,14 @@ fn captured_getfamily_response() {
             GenlCtrlAttr::HdrSize(0),
             GenlCtrlAttr::MaxAttr(0),
             GenlCtrlAttr::Ops(vec![
-                vec![GenlCtrlOp::Id(3), GenlCtrlOp::Flags(14)],
-                vec![GenlCtrlOp::Id(10), GenlCtrlOp::Flags(12)],
+                GenlCtrlOpSet::new(
+                    1,
+                    vec![GenlCtrlOp::Id(3), GenlCtrlOp::Flags(14)],
+                ),
+                GenlCtrlOpSet::new(
+                    2,
+                    vec![GenlCtrlOp::Id(10), GenlCtrlOp::Flags(12)],
+                ),
             ]),
             GenlCtrlAttr::McastGroups(vec![vec![
                 GenlCtrlMcastGroup::Id(16),
