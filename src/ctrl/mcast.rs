@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-use super::{append_nl_string, checked_index};
+use super::attr::{append_nl_string, checked_index};
 use netlink_packet_core::{
     append_bytes, append_u32, parse_string, parse_u32, DecodeError, DefaultNla,
     Emitable, EncodeError, ErrorContext, Nla, NlaBuffer, Parseable,

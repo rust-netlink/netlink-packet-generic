@@ -1,0 +1,192 @@
+// SPDX-License-Identifier: MIT
+
+use crate::header::GenlHeader;
+use crate::traits::GenlFamily;
+use netlink_packet_core::{
+    DecodeError, Emitable, EncodeError, ErrorContext, NlasIterator, Parseable,
+    ParseableParametrized,
+};
+use std::convert::{TryFrom, TryInto};
+
+use super::attr::GenlCtrlAttrs;
+
+const GENL_ID_CTRL: u16 = 16;
+
+const CTRL_CMD_NEWFAMILY: u8 = 1;
+const CTRL_CMD_DELFAMILY: u8 = 2;
+const CTRL_CMD_GETFAMILY: u8 = 3;
+const CTRL_CMD_NEWOPS: u8 = 4;
+const CTRL_CMD_DELOPS: u8 = 5;
+const CTRL_CMD_GETOPS: u8 = 6;
+const CTRL_CMD_NEWMCAST_GRP: u8 = 7;
+const CTRL_CMD_DELMCAST_GRP: u8 = 8;
+const CTRL_CMD_GETMCAST_GRP: u8 = 9;
+const CTRL_CMD_GETPOLICY: u8 = 10;
+
+/// Command code definition of Netlink controller (nlctrl) family
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum GenlCtrlCmd {
+    /// Notify from event
+    NewFamily,
+    /// Notify from event
+    DelFamily,
+    /// Request to get family info
+    GetFamily,
+    /// Currently unused
+    NewOps,
+    /// Currently unused
+    DelOps,
+    /// Currently unused
+    GetOps,
+    /// Notify from event
+    NewMcastGrp,
+    /// Notify from event
+    DelMcastGrp,
+    /// Currently unused
+    GetMcastGrp,
+    /// Request to get family policy
+    GetPolicy,
+    /// A command code that is not known to this crate
+    Unknown(u8),
+}
+
+impl From<GenlCtrlCmd> for u8 {
+    fn from(cmd: GenlCtrlCmd) -> u8 {
+        use GenlCtrlCmd::*;
+        match cmd {
+            NewFamily => CTRL_CMD_NEWFAMILY,
+            DelFamily => CTRL_CMD_DELFAMILY,
+            GetFamily => CTRL_CMD_GETFAMILY,
+            NewOps => CTRL_CMD_NEWOPS,
+            DelOps => CTRL_CMD_DELOPS,
+            GetOps => CTRL_CMD_GETOPS,
+            NewMcastGrp => CTRL_CMD_NEWMCAST_GRP,
+            DelMcastGrp => CTRL_CMD_DELMCAST_GRP,
+            GetMcastGrp => CTRL_CMD_GETMCAST_GRP,
+            GetPolicy => CTRL_CMD_GETPOLICY,
+            Unknown(cmd) => cmd,
+        }
+    }
+}
+
+impl TryFrom<u8> for GenlCtrlCmd {
+    type Error = DecodeError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        use GenlCtrlCmd::*;
+        Ok(match value {
+            CTRL_CMD_NEWFAMILY => NewFamily,
+            CTRL_CMD_DELFAMILY => DelFamily,
+            CTRL_CMD_GETFAMILY => GetFamily,
+            CTRL_CMD_NEWOPS => NewOps,
+            CTRL_CMD_DELOPS => DelOps,
+            CTRL_CMD_GETOPS => GetOps,
+            CTRL_CMD_NEWMCAST_GRP => NewMcastGrp,
+            CTRL_CMD_DELMCAST_GRP => DelMcastGrp,
+            CTRL_CMD_GETMCAST_GRP => GetMcastGrp,
+            CTRL_CMD_GETPOLICY => GetPolicy,
+            cmd => Unknown(cmd),
+        })
+    }
+}
+
+/// Payload of generic netlink controller
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct GenlCtrl {
+    /// Command code of this message
+    pub cmd: GenlCtrlCmd,
+    /// Netlink attributes in this message
+    pub nlas: Vec<GenlCtrlAttrs>,
+}
+
+impl GenlFamily for GenlCtrl {
+    fn family_name() -> &'static str {
+        "nlctrl"
+    }
+
+    fn family_id(&self) -> u16 {
+        GENL_ID_CTRL
+    }
+
+    fn command(&self) -> u8 {
+        self.cmd.into()
+    }
+
+    fn version(&self) -> u8 {
+        2
+    }
+}
+
+impl Emitable for GenlCtrl {
+    fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
+        self.nlas.as_slice().emit(out)
+    }
+}
+
+impl ParseableParametrized<[u8], GenlHeader> for GenlCtrl {
+    fn parse_with_param(
+        buf: &[u8],
+        header: GenlHeader,
+    ) -> Result<Self, DecodeError> {
+        Ok(Self {
+            cmd: header.cmd.try_into()?,
+            nlas: parse_ctrlnlas(buf)?,
+        })
+    }
+}
+
+fn parse_ctrlnlas(buf: &[u8]) -> Result<Vec<GenlCtrlAttrs>, DecodeError> {
+    let nlas = NlasIterator::new(buf)?
+        .map(|nla| GenlCtrlAttrs::parse(&nla))
+        .collect::<Result<Vec<_>, _>>()
+        .context("failed to parse control message attributes")?;
+
+    Ok(nlas)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ctrl_cmd_round_trip() {
+        for cmd in [
+            GenlCtrlCmd::NewFamily,
+            GenlCtrlCmd::DelFamily,
+            GenlCtrlCmd::GetFamily,
+            GenlCtrlCmd::NewOps,
+            GenlCtrlCmd::DelOps,
+            GenlCtrlCmd::GetOps,
+            GenlCtrlCmd::NewMcastGrp,
+            GenlCtrlCmd::DelMcastGrp,
+            GenlCtrlCmd::GetMcastGrp,
+            GenlCtrlCmd::GetPolicy,
+        ] {
+            assert_eq!(GenlCtrlCmd::try_from(u8::from(cmd)).unwrap(), cmd);
+        }
+    }
+
+    #[test]
+    fn unknown_ctrl_cmd_is_preserved() {
+        for value in [0, 200] {
+            let cmd = GenlCtrlCmd::try_from(value).unwrap();
+            assert_eq!(cmd, GenlCtrlCmd::Unknown(value));
+            assert_eq!(u8::from(cmd), value);
+        }
+    }
+
+    #[test]
+    fn message_with_unknown_ctrl_cmd_parses() {
+        let parsed = GenlCtrl::parse_with_param(
+            &[],
+            GenlHeader {
+                cmd: 200,
+                version: 0,
+            },
+        )
+        .unwrap();
+        assert_eq!(parsed.cmd, GenlCtrlCmd::Unknown(200));
+        assert!(parsed.nlas.is_empty());
+    }
+}

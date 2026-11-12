@@ -7,15 +7,10 @@ use netlink_packet_core::{
     NLA_TYPE_MASK,
 };
 
-mod mcast;
-mod oppolicy;
-mod ops;
-mod policy;
-
-pub use mcast::*;
-pub use oppolicy::*;
-pub use ops::*;
-pub use policy::*;
+use super::mcast::{McastGroupList, McastGrpAttrs};
+use super::oppolicy::OppolicyAttr;
+use super::ops::{OpAttrs, OpList};
+use super::policy::PolicyAttr;
 
 const CTRL_ATTR_FAMILY_ID: u16 = 1;
 const CTRL_ATTR_FAMILY_NAME: u16 = 2;
@@ -217,6 +212,10 @@ impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlAttrs {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ctrl::oppolicy::OppolicyIndexAttr;
+    use crate::ctrl::policy::{
+        AttributePolicyAttr, NlPolicyTypeAttrs, NlaType,
+    };
 
     // These tests compare against hard-coded little-endian wire bytes.
     #[cfg(target_endian = "little")]
@@ -497,6 +496,9 @@ mod string_validation_tests {
 #[cfg(test)]
 mod policy_tests {
     use super::*;
+    use crate::ctrl::policy::{
+        AttributePolicyAttr, NlPolicyTypeAttrs, NlaType,
+    };
 
     fn round_trip(policy: GenlCtrlAttrs) -> GenlCtrlAttrs {
         let mut buf = Vec::new();
@@ -618,6 +620,7 @@ mod policy_tests {
 #[cfg(test)]
 mod unknown_attr_tests {
     use super::*;
+    use crate::ctrl::oppolicy::OppolicyIndexAttr;
 
     #[test]
     fn unknown_ctrl_attr_round_trip() {
