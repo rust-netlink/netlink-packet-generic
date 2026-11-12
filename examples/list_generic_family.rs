@@ -4,7 +4,7 @@ use netlink_packet_core::{
     Emitable, NetlinkMessage, NetlinkPayload, NLM_F_DUMP, NLM_F_REQUEST,
 };
 use netlink_packet_generic::{
-    GenlCtrl, GenlCtrlAttrs, GenlCtrlCmd, GenlMessage,
+    GenlCtrlAttr, GenlCtrlCmd, GenlCtrlMessage, GenlMessage,
 };
 use netlink_sys::{Socket, SocketAddr};
 
@@ -15,7 +15,7 @@ fn main() {
     socket.bind_auto().unwrap();
     socket.connect(&SocketAddr::new(0, 0)).unwrap();
 
-    let mut genlmsg = GenlMessage::from_payload(GenlCtrl {
+    let mut genlmsg = GenlMessage::from_payload(GenlCtrlMessage {
         cmd: GenlCtrlCmd::GetFamily,
         nlas: vec![],
     });
@@ -34,7 +34,10 @@ fn main() {
         while offset < rxbuf.len() {
             let buf = &rxbuf[offset..];
             // Parse the message
-            let msg = <NetlinkMessage<GenlMessage<GenlCtrl>>>::deserialize(buf)
+            let msg =
+                <NetlinkMessage<GenlMessage<GenlCtrlMessage>>>::deserialize(
+                    buf,
+                )
                 .unwrap();
 
             match msg.payload {
@@ -56,11 +59,11 @@ fn main() {
     }
 }
 
-fn print_entry(entry: Vec<GenlCtrlAttrs>) {
+fn print_entry(entry: Vec<GenlCtrlAttr>) {
     let family_id = entry
         .iter()
         .find_map(|nla| {
-            if let GenlCtrlAttrs::FamilyId(id) = nla {
+            if let GenlCtrlAttr::FamilyId(id) = nla {
                 Some(*id)
             } else {
                 None
@@ -70,7 +73,7 @@ fn print_entry(entry: Vec<GenlCtrlAttrs>) {
     let family_name = entry
         .iter()
         .find_map(|nla| {
-            if let GenlCtrlAttrs::FamilyName(name) = nla {
+            if let GenlCtrlAttr::FamilyName(name) = nla {
                 Some(name.as_str())
             } else {
                 None
@@ -80,7 +83,7 @@ fn print_entry(entry: Vec<GenlCtrlAttrs>) {
     let version = entry
         .iter()
         .find_map(|nla| {
-            if let GenlCtrlAttrs::Version(ver) = nla {
+            if let GenlCtrlAttr::Version(ver) = nla {
                 Some(*ver)
             } else {
                 None
@@ -90,7 +93,7 @@ fn print_entry(entry: Vec<GenlCtrlAttrs>) {
     let hdrsize = entry
         .iter()
         .find_map(|nla| {
-            if let GenlCtrlAttrs::HdrSize(hdr) = nla {
+            if let GenlCtrlAttr::HdrSize(hdr) = nla {
                 Some(*hdr)
             } else {
                 None

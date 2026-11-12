@@ -3,7 +3,7 @@
 use netlink_packet_core::{
     append_bytes, append_i64, append_u32, append_u64, parse_i64, parse_u32,
     parse_u64, DecodeError, DefaultNla, Emitable, EncodeError, ErrorContext,
-    Nla, NlaBuffer, NlasIterator, Parseable,
+    Nla, NlaBuffer, Parseable,
 };
 use std::convert::TryFrom;
 
@@ -39,21 +39,21 @@ const NL_POLICY_TYPE_ATTR_BITFIELD32_MASK: u16 = 10;
 const NL_POLICY_TYPE_ATTR_MASK: u16 = 12;
 const NL_POLICY_TYPE_ATTR_BYTE_ORDER: u16 = 13;
 
-// PolicyAttr
+// GenlCtrlPolicySet
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct PolicyAttr {
+pub struct GenlCtrlPolicySet {
     pub index: u16,
-    pub attr_policy: AttributePolicyAttr,
+    pub attrs: Vec<GenlCtrlPolicyEntry>,
 }
 
-impl Nla for PolicyAttr {
+impl Nla for GenlCtrlPolicySet {
     fn kind(&self) -> u16 {
         self.index
     }
 
     fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
-        self.attr_policy.emit(out)
+        self.attrs.as_slice().emit(out)
     }
 
     fn is_nested(&self) -> bool {
@@ -61,34 +61,31 @@ impl Nla for PolicyAttr {
     }
 }
 
-impl<'a> Parseable<NlaBuffer<'a>> for PolicyAttr {
+impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlPolicySet {
     fn parse(buf: &NlaBuffer<'a>) -> Result<Self, DecodeError> {
         Ok(Self {
             index: buf.kind(),
-            attr_policy: AttributePolicyAttr::parse(
-                &NlaBuffer::new(buf.value())
-                    .context("failed to parse PolicyAttr")?,
-            )
-            .context("failed to parse PolicyAttr")?,
+            attrs: Vec::<GenlCtrlPolicyEntry>::parse(buf)
+                .context("failed to parse GenlCtrlPolicySet")?,
         })
     }
 }
 
-// AttributePolicyAttr
+// GenlCtrlPolicyEntry
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct AttributePolicyAttr {
+pub struct GenlCtrlPolicyEntry {
     pub index: u16,
-    pub policies: Vec<NlPolicyTypeAttrs>,
+    pub attrs: Vec<GenlCtrlPolicy>,
 }
 
-impl Nla for AttributePolicyAttr {
+impl Nla for GenlCtrlPolicyEntry {
     fn kind(&self) -> u16 {
         self.index
     }
 
     fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
-        self.policies.as_slice().emit(out)
+        self.attrs.as_slice().emit(out)
     }
 
     fn is_nested(&self) -> bool {
@@ -96,26 +93,22 @@ impl Nla for AttributePolicyAttr {
     }
 }
 
-impl<'a> Parseable<NlaBuffer<'a>> for AttributePolicyAttr {
+impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlPolicyEntry {
     fn parse(buf: &NlaBuffer<'a>) -> Result<Self, DecodeError> {
-        let policies = NlasIterator::new(buf.value())?
-            .map(|nla| NlPolicyTypeAttrs::parse(&nla))
-            .collect::<Result<Vec<_>, _>>()
-            .context("failed to parse AttributePolicyAttr")?;
-
         Ok(Self {
             index: buf.kind(),
-            policies,
+            attrs: Vec::<GenlCtrlPolicy>::parse(buf)
+                .context("failed to parse GenlCtrlPolicyEntry")?,
         })
     }
 }
 
-// PolicyTypeAttrs
+// GenlCtrlPolicy
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
-pub enum NlPolicyTypeAttrs {
-    Type(NlaType),
+pub enum GenlCtrlPolicy {
+    Type(GenlCtrlPolicyType),
     MinValueSigned(i64),
     MaxValueSigned(i64),
     MaxValueUnsigned(u64),
@@ -130,9 +123,9 @@ pub enum NlPolicyTypeAttrs {
     Unknown(DefaultNla),
 }
 
-impl Nla for NlPolicyTypeAttrs {
+impl Nla for GenlCtrlPolicy {
     fn kind(&self) -> u16 {
-        use NlPolicyTypeAttrs::*;
+        use GenlCtrlPolicy::*;
         match self {
             Type(_) => NL_POLICY_TYPE_ATTR_TYPE,
             MinValueSigned(_) => NL_POLICY_TYPE_ATTR_MIN_VALUE_S,
@@ -151,7 +144,7 @@ impl Nla for NlPolicyTypeAttrs {
     }
 
     fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
-        use NlPolicyTypeAttrs::*;
+        use GenlCtrlPolicy::*;
         match self {
             Type(v) => append_u32(out, u32::from(*v)),
             MinValueSigned(v) => append_i64(out, *v),
@@ -171,14 +164,14 @@ impl Nla for NlPolicyTypeAttrs {
     }
 }
 
-impl<'a> Parseable<NlaBuffer<'a>> for NlPolicyTypeAttrs {
+impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlPolicy {
     fn parse(buf: &NlaBuffer<'a>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {
             NL_POLICY_TYPE_ATTR_TYPE => {
                 let value = parse_u32(payload)
                     .context("invalid NL_POLICY_TYPE_ATTR_TYPE value")?;
-                Self::Type(NlaType::try_from(value)?)
+                Self::Type(GenlCtrlPolicyType::try_from(value)?)
             }
             NL_POLICY_TYPE_ATTR_MIN_VALUE_S => Self::MinValueSigned(
                 parse_i64(payload)
@@ -233,7 +226,7 @@ impl<'a> Parseable<NlaBuffer<'a>> for NlPolicyTypeAttrs {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
-pub enum NlaType {
+pub enum GenlCtrlPolicyType {
     Invalid,
     Flag,
     U8,
@@ -255,56 +248,56 @@ pub enum NlaType {
     Unknown(u32),
 }
 
-impl From<NlaType> for u32 {
-    fn from(nlatype: NlaType) -> u32 {
-        match nlatype {
-            NlaType::Invalid => NL_ATTR_TYPE_INVALID,
-            NlaType::Flag => NL_ATTR_TYPE_FLAG,
-            NlaType::U8 => NL_ATTR_TYPE_U8,
-            NlaType::U16 => NL_ATTR_TYPE_U16,
-            NlaType::U32 => NL_ATTR_TYPE_U32,
-            NlaType::U64 => NL_ATTR_TYPE_U64,
-            NlaType::S8 => NL_ATTR_TYPE_S8,
-            NlaType::S16 => NL_ATTR_TYPE_S16,
-            NlaType::S32 => NL_ATTR_TYPE_S32,
-            NlaType::S64 => NL_ATTR_TYPE_S64,
-            NlaType::Binary => NL_ATTR_TYPE_BINARY,
-            NlaType::String => NL_ATTR_TYPE_STRING,
-            NlaType::NulString => NL_ATTR_TYPE_NUL_STRING,
-            NlaType::Nested => NL_ATTR_TYPE_NESTED,
-            NlaType::NestedArray => NL_ATTR_TYPE_NESTED_ARRAY,
-            NlaType::Bitfield32 => NL_ATTR_TYPE_BITFIELD32,
-            NlaType::SInt => NL_ATTR_TYPE_SINT,
-            NlaType::UInt => NL_ATTR_TYPE_UINT,
-            NlaType::Unknown(value) => value,
+impl From<GenlCtrlPolicyType> for u32 {
+    fn from(policy_type: GenlCtrlPolicyType) -> u32 {
+        match policy_type {
+            GenlCtrlPolicyType::Invalid => NL_ATTR_TYPE_INVALID,
+            GenlCtrlPolicyType::Flag => NL_ATTR_TYPE_FLAG,
+            GenlCtrlPolicyType::U8 => NL_ATTR_TYPE_U8,
+            GenlCtrlPolicyType::U16 => NL_ATTR_TYPE_U16,
+            GenlCtrlPolicyType::U32 => NL_ATTR_TYPE_U32,
+            GenlCtrlPolicyType::U64 => NL_ATTR_TYPE_U64,
+            GenlCtrlPolicyType::S8 => NL_ATTR_TYPE_S8,
+            GenlCtrlPolicyType::S16 => NL_ATTR_TYPE_S16,
+            GenlCtrlPolicyType::S32 => NL_ATTR_TYPE_S32,
+            GenlCtrlPolicyType::S64 => NL_ATTR_TYPE_S64,
+            GenlCtrlPolicyType::Binary => NL_ATTR_TYPE_BINARY,
+            GenlCtrlPolicyType::String => NL_ATTR_TYPE_STRING,
+            GenlCtrlPolicyType::NulString => NL_ATTR_TYPE_NUL_STRING,
+            GenlCtrlPolicyType::Nested => NL_ATTR_TYPE_NESTED,
+            GenlCtrlPolicyType::NestedArray => NL_ATTR_TYPE_NESTED_ARRAY,
+            GenlCtrlPolicyType::Bitfield32 => NL_ATTR_TYPE_BITFIELD32,
+            GenlCtrlPolicyType::SInt => NL_ATTR_TYPE_SINT,
+            GenlCtrlPolicyType::UInt => NL_ATTR_TYPE_UINT,
+            GenlCtrlPolicyType::Unknown(value) => value,
         }
     }
 }
 
-impl TryFrom<u32> for NlaType {
+impl TryFrom<u32> for GenlCtrlPolicyType {
     type Error = DecodeError;
 
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         Ok(match value {
-            NL_ATTR_TYPE_INVALID => NlaType::Invalid,
-            NL_ATTR_TYPE_FLAG => NlaType::Flag,
-            NL_ATTR_TYPE_U8 => NlaType::U8,
-            NL_ATTR_TYPE_U16 => NlaType::U16,
-            NL_ATTR_TYPE_U32 => NlaType::U32,
-            NL_ATTR_TYPE_U64 => NlaType::U64,
-            NL_ATTR_TYPE_S8 => NlaType::S8,
-            NL_ATTR_TYPE_S16 => NlaType::S16,
-            NL_ATTR_TYPE_S32 => NlaType::S32,
-            NL_ATTR_TYPE_S64 => NlaType::S64,
-            NL_ATTR_TYPE_BINARY => NlaType::Binary,
-            NL_ATTR_TYPE_STRING => NlaType::String,
-            NL_ATTR_TYPE_NUL_STRING => NlaType::NulString,
-            NL_ATTR_TYPE_NESTED => NlaType::Nested,
-            NL_ATTR_TYPE_NESTED_ARRAY => NlaType::NestedArray,
-            NL_ATTR_TYPE_BITFIELD32 => NlaType::Bitfield32,
-            NL_ATTR_TYPE_SINT => NlaType::SInt,
-            NL_ATTR_TYPE_UINT => NlaType::UInt,
-            value => NlaType::Unknown(value),
+            NL_ATTR_TYPE_INVALID => GenlCtrlPolicyType::Invalid,
+            NL_ATTR_TYPE_FLAG => GenlCtrlPolicyType::Flag,
+            NL_ATTR_TYPE_U8 => GenlCtrlPolicyType::U8,
+            NL_ATTR_TYPE_U16 => GenlCtrlPolicyType::U16,
+            NL_ATTR_TYPE_U32 => GenlCtrlPolicyType::U32,
+            NL_ATTR_TYPE_U64 => GenlCtrlPolicyType::U64,
+            NL_ATTR_TYPE_S8 => GenlCtrlPolicyType::S8,
+            NL_ATTR_TYPE_S16 => GenlCtrlPolicyType::S16,
+            NL_ATTR_TYPE_S32 => GenlCtrlPolicyType::S32,
+            NL_ATTR_TYPE_S64 => GenlCtrlPolicyType::S64,
+            NL_ATTR_TYPE_BINARY => GenlCtrlPolicyType::Binary,
+            NL_ATTR_TYPE_STRING => GenlCtrlPolicyType::String,
+            NL_ATTR_TYPE_NUL_STRING => GenlCtrlPolicyType::NulString,
+            NL_ATTR_TYPE_NESTED => GenlCtrlPolicyType::Nested,
+            NL_ATTR_TYPE_NESTED_ARRAY => GenlCtrlPolicyType::NestedArray,
+            NL_ATTR_TYPE_BITFIELD32 => GenlCtrlPolicyType::Bitfield32,
+            NL_ATTR_TYPE_SINT => GenlCtrlPolicyType::SInt,
+            NL_ATTR_TYPE_UINT => GenlCtrlPolicyType::UInt,
+            value => GenlCtrlPolicyType::Unknown(value),
         })
     }
 }
@@ -316,11 +309,11 @@ mod tests {
     #[test]
     fn unsigned_min_max_kinds() {
         assert_eq!(
-            NlPolicyTypeAttrs::MinValueUnsigned(0).kind(),
+            GenlCtrlPolicy::MinValueUnsigned(0).kind(),
             NL_POLICY_TYPE_ATTR_MIN_VALUE_U
         );
         assert_eq!(
-            NlPolicyTypeAttrs::MaxValueUnsigned(0).kind(),
+            GenlCtrlPolicy::MaxValueUnsigned(0).kind(),
             NL_POLICY_TYPE_ATTR_MAX_VALUE_U
         );
     }

@@ -6,17 +6,17 @@
 //! It also serves as an example for creating a generic family.
 
 mod attr;
-mod genl_ctrl;
 mod mcast;
+mod message;
 mod oppolicy;
 mod ops;
 mod policy;
 
-pub use self::attr::GenlCtrlAttrs;
-pub use self::genl_ctrl::{GenlCtrl, GenlCtrlCmd};
-pub use self::mcast::McastGrpAttrs;
-pub use self::oppolicy::{OppolicyAttr, OppolicyIndexAttr};
-pub use self::ops::OpAttrs;
+pub use self::attr::GenlCtrlAttr;
+pub use self::mcast::GenlCtrlMcastGroup;
+pub use self::message::{GenlCtrlCmd, GenlCtrlMessage};
+pub use self::oppolicy::{GenlCtrlOpPolicy, GenlCtrlOpPolicyIndex};
+pub use self::ops::GenlCtrlOp;
 pub use self::policy::{
-    AttributePolicyAttr, NlPolicyTypeAttrs, NlaType, PolicyAttr,
+    GenlCtrlPolicy, GenlCtrlPolicyEntry, GenlCtrlPolicySet, GenlCtrlPolicyType,
 };

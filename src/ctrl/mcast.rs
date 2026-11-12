@@ -20,10 +20,12 @@ impl Deref for McastGroupList {
     }
 }
 
-impl TryFrom<&Vec<Vec<McastGrpAttrs>>> for McastGroupList {
+impl TryFrom<&Vec<Vec<GenlCtrlMcastGroup>>> for McastGroupList {
     type Error = EncodeError;
 
-    fn try_from(groups: &Vec<Vec<McastGrpAttrs>>) -> Result<Self, Self::Error> {
+    fn try_from(
+        groups: &Vec<Vec<GenlCtrlMcastGroup>>,
+    ) -> Result<Self, Self::Error> {
         Ok(Self(
             groups
                 .iter()
@@ -43,7 +45,7 @@ impl TryFrom<&Vec<Vec<McastGrpAttrs>>> for McastGroupList {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct McastGroup {
     index: u16,
-    nlas: Vec<McastGrpAttrs>,
+    nlas: Vec<GenlCtrlMcastGroup>,
 }
 
 impl Nla for McastGroup {
@@ -58,15 +60,15 @@ impl Nla for McastGroup {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
-pub enum McastGrpAttrs {
+pub enum GenlCtrlMcastGroup {
     Name(String),
     Id(u32),
     Unknown(DefaultNla),
 }
 
-impl Nla for McastGrpAttrs {
+impl Nla for GenlCtrlMcastGroup {
     fn kind(&self) -> u16 {
-        use McastGrpAttrs::*;
+        use GenlCtrlMcastGroup::*;
         match self {
             Name(_) => CTRL_ATTR_MCAST_GRP_NAME,
             Id(_) => CTRL_ATTR_MCAST_GRP_ID,
@@ -75,7 +77,7 @@ impl Nla for McastGrpAttrs {
     }
 
     fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
-        use McastGrpAttrs::*;
+        use GenlCtrlMcastGroup::*;
         match self {
             Name(s) => append_nl_string(out, s)?,
             Id(v) => append_u32(out, *v),
@@ -85,7 +87,7 @@ impl Nla for McastGrpAttrs {
     }
 }
 
-impl<'a> Parseable<NlaBuffer<'a>> for McastGrpAttrs {
+impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlMcastGroup {
     fn parse(buf: &NlaBuffer<'a>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {

@@ -9,12 +9,12 @@ const CTRL_ATTR_POLICY_DO: u16 = 1;
 const CTRL_ATTR_POLICY_DUMP: u16 = 2;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct OppolicyAttr {
+pub struct GenlCtrlOpPolicy {
     pub cmd: u8,
-    pub policy_idx: Vec<OppolicyIndexAttr>,
+    pub policy_idx: Vec<GenlCtrlOpPolicyIndex>,
 }
 
-impl Nla for OppolicyAttr {
+impl Nla for GenlCtrlOpPolicy {
     fn kind(&self) -> u16 {
         self.cmd as u16
     }
@@ -28,12 +28,12 @@ impl Nla for OppolicyAttr {
     }
 }
 
-impl<'a> Parseable<NlaBuffer<'a>> for OppolicyAttr {
+impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlOpPolicy {
     fn parse(buf: &NlaBuffer<'a>) -> Result<Self, DecodeError> {
         let policy_idx = NlasIterator::new(buf.value())?
-            .map(|nla| OppolicyIndexAttr::parse(&nla))
+            .map(|nla| GenlCtrlOpPolicyIndex::parse(&nla))
             .collect::<Result<Vec<_>, _>>()
-            .context("failed to parse OppolicyAttr")?;
+            .context("failed to parse GenlCtrlOpPolicy")?;
 
         Ok(Self {
             cmd: u8::try_from(buf.kind()).map_err(|_| {
@@ -49,15 +49,15 @@ impl<'a> Parseable<NlaBuffer<'a>> for OppolicyAttr {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
-pub enum OppolicyIndexAttr {
+pub enum GenlCtrlOpPolicyIndex {
     Do(u32),
     Dump(u32),
     Unknown(DefaultNla),
 }
 
-impl Nla for OppolicyIndexAttr {
+impl Nla for GenlCtrlOpPolicyIndex {
     fn kind(&self) -> u16 {
-        use OppolicyIndexAttr::*;
+        use GenlCtrlOpPolicyIndex::*;
         match self {
             Do(_) => CTRL_ATTR_POLICY_DO,
             Dump(_) => CTRL_ATTR_POLICY_DUMP,
@@ -66,7 +66,7 @@ impl Nla for OppolicyIndexAttr {
     }
 
     fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
-        use OppolicyIndexAttr::*;
+        use GenlCtrlOpPolicyIndex::*;
         match self {
             Do(v) => append_u32(out, *v),
             Dump(v) => append_u32(out, *v),
@@ -76,7 +76,7 @@ impl Nla for OppolicyIndexAttr {
     }
 }
 
-impl<'a> Parseable<NlaBuffer<'a>> for OppolicyIndexAttr {
+impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlOpPolicyIndex {
     fn parse(buf: &NlaBuffer<'a>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {
