@@ -189,70 +189,70 @@ fn captured_getpolicy_response() {
     assert_eq!(
         attrs,
         vec![
-            GenlCtrlAttr::OpPolicy(vec![GenlCtrlOpPolicy {
-                cmd: GenlCtrlCmd::GetFamily,
-                policy_idx: vec![
+            GenlCtrlAttr::OpPolicy(vec![GenlCtrlOpPolicy::new(
+                GenlCtrlCmd::GetFamily,
+                vec![
                     GenlCtrlOpPolicyIndex::Do(0),
                     GenlCtrlOpPolicyIndex::Dump(0),
                 ],
-            }]),
-            GenlCtrlAttr::OpPolicy(vec![GenlCtrlOpPolicy {
-                cmd: GenlCtrlCmd::GetPolicy,
-                policy_idx: vec![GenlCtrlOpPolicyIndex::Dump(1)],
-            }]),
-            GenlCtrlAttr::Policy(vec![GenlCtrlPolicySet {
-                index: 0,
-                attrs: vec![GenlCtrlPolicyEntry {
-                    index: 1,
-                    attrs: vec![
+            )]),
+            GenlCtrlAttr::OpPolicy(vec![GenlCtrlOpPolicy::new(
+                GenlCtrlCmd::GetPolicy,
+                vec![GenlCtrlOpPolicyIndex::Dump(1)],
+            )]),
+            GenlCtrlAttr::Policy(vec![GenlCtrlPolicySet::new(
+                0,
+                vec![GenlCtrlPolicyEntry::new(
+                    1,
+                    vec![
                         GenlCtrlPolicy::MinValueUnsigned(0),
                         GenlCtrlPolicy::MaxValueUnsigned(65535),
                         GenlCtrlPolicy::Type(GenlCtrlPolicyType::U16),
                     ],
-                }],
-            }]),
-            GenlCtrlAttr::Policy(vec![GenlCtrlPolicySet {
-                index: 0,
-                attrs: vec![GenlCtrlPolicyEntry {
-                    index: 2,
-                    attrs: vec![
+                )],
+            )]),
+            GenlCtrlAttr::Policy(vec![GenlCtrlPolicySet::new(
+                0,
+                vec![GenlCtrlPolicyEntry::new(
+                    2,
+                    vec![
                         GenlCtrlPolicy::MaxLength(15),
                         GenlCtrlPolicy::Type(GenlCtrlPolicyType::NulString),
                     ],
-                }],
-            }]),
-            GenlCtrlAttr::Policy(vec![GenlCtrlPolicySet {
-                index: 1,
-                attrs: vec![GenlCtrlPolicyEntry {
-                    index: 1,
-                    attrs: vec![
+                )],
+            )]),
+            GenlCtrlAttr::Policy(vec![GenlCtrlPolicySet::new(
+                1,
+                vec![GenlCtrlPolicyEntry::new(
+                    1,
+                    vec![
                         GenlCtrlPolicy::MinValueUnsigned(0),
                         GenlCtrlPolicy::MaxValueUnsigned(65535),
                         GenlCtrlPolicy::Type(GenlCtrlPolicyType::U16),
                     ],
-                }],
-            }]),
-            GenlCtrlAttr::Policy(vec![GenlCtrlPolicySet {
-                index: 1,
-                attrs: vec![GenlCtrlPolicyEntry {
-                    index: 2,
-                    attrs: vec![
+                )],
+            )]),
+            GenlCtrlAttr::Policy(vec![GenlCtrlPolicySet::new(
+                1,
+                vec![GenlCtrlPolicyEntry::new(
+                    2,
+                    vec![
                         GenlCtrlPolicy::MaxLength(15),
                         GenlCtrlPolicy::Type(GenlCtrlPolicyType::NulString),
                     ],
-                }],
-            }]),
-            GenlCtrlAttr::Policy(vec![GenlCtrlPolicySet {
-                index: 1,
-                attrs: vec![GenlCtrlPolicyEntry {
-                    index: 10,
-                    attrs: vec![
+                )],
+            )]),
+            GenlCtrlAttr::Policy(vec![GenlCtrlPolicySet::new(
+                1,
+                vec![GenlCtrlPolicyEntry::new(
+                    10,
+                    vec![
                         GenlCtrlPolicy::MinValueUnsigned(0),
                         GenlCtrlPolicy::MaxValueUnsigned(4294967295),
                         GenlCtrlPolicy::Type(GenlCtrlPolicyType::U32),
                     ],
-                }],
-            }]),
+                )],
+            )]),
         ]
     );
 }

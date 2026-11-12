@@ -10,9 +10,19 @@ const CTRL_ATTR_POLICY_DO: u16 = 1;
 const CTRL_ATTR_POLICY_DUMP: u16 = 2;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct GenlCtrlOpPolicy {
     pub cmd: GenlCtrlCmd,
     pub policy_idx: Vec<GenlCtrlOpPolicyIndex>,
+}
+
+impl GenlCtrlOpPolicy {
+    pub fn new(
+        cmd: GenlCtrlCmd,
+        policy_idx: Vec<GenlCtrlOpPolicyIndex>,
+    ) -> Self {
+        Self { cmd, policy_idx }
+    }
 }
 
 impl Nla for GenlCtrlOpPolicy {
