@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 
-use super::attr::append_nl_string;
+use super::attr::{append_nl_string, parse_nl_string};
 use netlink_packet_core::{
-    append_bytes, append_u32, parse_string, parse_u32, DecodeError, DefaultNla,
-    Emitable, EncodeError, ErrorContext, Nla, NlaBuffer, Parseable,
+    append_bytes, append_u32, parse_u32, DecodeError, DefaultNla, Emitable,
+    EncodeError, ErrorContext, Nla, NlaBuffer, Parseable,
 };
 
 const CTRL_ATTR_MCAST_GRP_NAME: u16 = 1;
@@ -80,7 +80,7 @@ impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlMcastGroup {
         let payload = buf.value();
         Ok(match buf.kind() {
             CTRL_ATTR_MCAST_GRP_NAME => Self::Name(
-                parse_string(payload)
+                parse_nl_string(payload)
                     .context("invalid CTRL_ATTR_MCAST_GRP_NAME value")?,
             ),
             CTRL_ATTR_MCAST_GRP_ID => Self::Id(

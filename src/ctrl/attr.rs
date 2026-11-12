@@ -57,6 +57,21 @@ pub(crate) fn append_nl_string(
     Ok(())
 }
 
+/// Parse a NUL-terminated netlink string and enforce the kernel name limit.
+///
+/// The kernel stores family and multicast group names in a `char[GENL_NAMSIZ]`
+/// buffer, so a parsed name must be shorter than `GENL_NAMSIZ`.
+pub(crate) fn parse_nl_string(payload: &[u8]) -> Result<String, DecodeError> {
+    let value = parse_string(payload)?;
+    if value.len() >= GENL_NAMSIZ {
+        return Err(DecodeError::from(format!(
+            "generic netlink name is too long: {} >= {GENL_NAMSIZ}",
+            value.len()
+        )));
+    }
+    Ok(value)
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum GenlCtrlAttr {
@@ -129,7 +144,7 @@ impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlAttr {
                     .context("invalid CTRL_ATTR_FAMILY_ID value")?,
             ),
             CTRL_ATTR_FAMILY_NAME => Self::FamilyName(
-                parse_string(payload)
+                parse_nl_string(payload)
                     .context("invalid CTRL_ATTR_FAMILY_NAME value")?,
             ),
             CTRL_ATTR_VERSION => Self::Version(
@@ -483,6 +498,33 @@ mod string_validation_tests {
         let parsed = GenlCtrlMcastGroup::parse(&NlaBuffer::new(&buf).unwrap())
             .expect("failed to parse mcast name");
         assert_eq!(parsed, attr);
+    }
+
+    fn nla_bytes(kind: u16, value: &[u8]) -> Vec<u8> {
+        let mut bytes = Vec::new();
+        bytes.extend_from_slice(&((4 + value.len()) as u16).to_ne_bytes());
+        bytes.extend_from_slice(&kind.to_ne_bytes());
+        bytes.extend_from_slice(value);
+        bytes
+    }
+
+    #[test]
+    fn family_name_parse_rejects_over_length() {
+        let mut value = vec![b'a'; max_name_len() + 1];
+        value.push(0);
+        let bytes = nla_bytes(2, &value);
+        let result = GenlCtrlAttr::parse(&NlaBuffer::new(&bytes).unwrap());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn mcast_name_parse_rejects_over_length() {
+        let mut value = vec![b'a'; max_name_len() + 1];
+        value.push(0);
+        let bytes = nla_bytes(1, &value);
+        let result =
+            GenlCtrlMcastGroup::parse(&NlaBuffer::new(&bytes).unwrap());
+        assert!(result.is_err());
     }
 }
 
