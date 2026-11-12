@@ -1,4 +1,39 @@
 # Changelog
+## [1.0.0-rc1] - 2026-11-12
+### Breaking changes
+ - API break: ctrl: Make `GenlCtrlMessage` non-exhaustive. (24cdb7a)
+ - API break: ctrl: Make parser structs non-exhaustive and add constructors. (7149ff9)
+ - API break: ctrl: Store op policy command as `GenlCtrlCmd`. (9aa9035)
+ - API break: ctrl: Use enum for policy byte order. (b44fcc2)
+ - API break: ctrl: Use bitflags for generic netlink operation flags. (e02c897)
+ - API break: ctrl: Add `GenlCtrlMcastGroupSet` and preserve group index. (91b7666)
+ - API break: ctrl: Add `GenlCtrlOpSet` and preserve operation index. (9b664ab)
+ - API break: ctrl: Unify controller type names and policy lists. (c9a83e5)
+ - API break: Re-export types and move constants into consumers. (0945da9)
+ - API break: Freeze enums and harden helper conversions. (fa350c5)
+
+### New features
+ - N/A
+
+### Bug fixes
+ - ctrl: Validate generic netlink name length on parse. (adf7e10)
+ - ctrl: Use version 0 for controller messages. (ce241de)
+ - ctrl: Flatten module layout and make exports explicit. (58986c4)
+ - nlas: Bounds generic netlink names to `GENL_NAMSIZ`. (7ecfedc)
+ - nlas: Fix `ByteOrder` policy attribute width. (439ae85)
+ - nlas: Harden control attributes and add nlmon tests. (8c9d0a9)
+ - Cargo: Bump netlink-sys dev-dependency to 1.0.0-rc1. (5b9967a)
+ - ci: Add docs, tests, MSRV checks and update checkout action. (621a1af)
+ - tests: Cover headers, messages, and non-little-endian paths. (11a7497)
+ - docs: Fix broken rustdoc links in GenlMessage. (696ad7a)
+ - nlas: Handle policy PAD, newer kernel types, and unknown attrs. (28fb858)
+ - nlas: Fix unsigned policy min/max attribute mapping. (45dc0e0)
+ - nlas: Validate NUL-terminated strings on emit. (0ee2ca6)
+ - Cargo: Fix cargo build warning on homepage. (728172c)
+ - Use netlink-packet-core 1.0.0-rc1. (b8cf7ac)
+ - LICENSE: fix LICENSE-MIT. (28d6609)
+ - Update dev-dependency netlink-sys to 0.9. (b10a883)
+
 ## [0.5.0] - 2026-08-18
 ### Breaking changes
  - Use zerocopy for buffer parsing. All XxxBuffer data types are
