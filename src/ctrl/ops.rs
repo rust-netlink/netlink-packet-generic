@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 
+use bitflags::bitflags;
 use netlink_packet_core::{
     append_bytes, append_u32, parse_u32, DecodeError, DefaultNla, Emitable,
     EncodeError, ErrorContext, Nla, NlaBuffer, Parseable,
@@ -7,6 +8,31 @@ use netlink_packet_core::{
 
 const CTRL_ATTR_OP_ID: u16 = 1;
 const CTRL_ATTR_OP_FLAGS: u16 = 2;
+
+const GENL_ADMIN_PERM: u32 = 0x01;
+const GENL_CMD_CAP_DO: u32 = 0x02;
+const GENL_CMD_CAP_DUMP: u32 = 0x04;
+const GENL_CMD_CAP_HASPOL: u32 = 0x08;
+const GENL_UNS_ADMIN_PERM: u32 = 0x10;
+
+bitflags! {
+    /// Flags of a generic netlink operation.
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    #[non_exhaustive]
+    pub struct GenlCtrlOpFlags: u32 {
+        /// Requires `CAP_NET_ADMIN`.
+        const AdminPerm = GENL_ADMIN_PERM;
+        /// The operation supports a `doit` callback.
+        const CmdCapDo = GENL_CMD_CAP_DO;
+        /// The operation supports a `dumpit` callback.
+        const CmdCapDump = GENL_CMD_CAP_DUMP;
+        /// The operation has a policy.
+        const CmdCapHasPol = GENL_CMD_CAP_HASPOL;
+        /// Requires `CAP_NET_ADMIN` in the initial user namespace.
+        const UnsAdminPerm = GENL_UNS_ADMIN_PERM;
+        const _ = !0;
+    }
+}
 
 /// A nested operation entry in [`super::GenlCtrlAttr::Ops`].
 ///
@@ -49,7 +75,7 @@ impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlOpSet {
 #[non_exhaustive]
 pub enum GenlCtrlOp {
     Id(u32),
-    Flags(u32),
+    Flags(GenlCtrlOpFlags),
     Unknown(DefaultNla),
 }
 
@@ -67,7 +93,7 @@ impl Nla for GenlCtrlOp {
         use GenlCtrlOp::*;
         match self {
             Id(v) => append_u32(out, *v),
-            Flags(v) => append_u32(out, *v),
+            Flags(v) => append_u32(out, v.bits()),
             Unknown(nla) => append_bytes(out, nla.value()),
         }
         Ok(())
@@ -81,10 +107,12 @@ impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlOp {
             CTRL_ATTR_OP_ID => Self::Id(
                 parse_u32(payload).context("invalid CTRL_ATTR_OP_ID value")?,
             ),
-            CTRL_ATTR_OP_FLAGS => Self::Flags(
-                parse_u32(payload)
-                    .context("invalid CTRL_ATTR_OP_FLAGS value")?,
-            ),
+            CTRL_ATTR_OP_FLAGS => {
+                Self::Flags(GenlCtrlOpFlags::from_bits_retain(
+                    parse_u32(payload)
+                        .context("invalid CTRL_ATTR_OP_FLAGS value")?,
+                ))
+            }
             _ => Self::Unknown(DefaultNla::parse(buf)?),
         })
     }

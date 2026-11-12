@@ -10,6 +10,7 @@ readme = "README.md"
 description = "generic netlink packet types"
 
 [dependencies]
+bitflags = "2"
 netlink-packet-core = { version = "1.0.0-rc1" }
 zerocopy = { version = "0.8", features = ["derive"] }
 
