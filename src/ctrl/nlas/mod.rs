@@ -28,18 +28,20 @@ const CTRL_ATTR_POLICY: u16 = 8;
 const CTRL_ATTR_OP_POLICY: u16 = 9;
 const CTRL_ATTR_OP: u16 = 10;
 
+/// Length of a generic netlink family or multicast group name, including the
+/// trailing NUL (`GENL_NAMSIZ` in `include/uapi/linux/genetlink.h`).
+pub(crate) const GENL_NAMSIZ: usize = 16;
+
 /// Append a NUL-terminated netlink string.
 ///
 /// Interior NUL bytes are rejected because they would make parsing stop
-/// early and turn the emit/parse round trip lossy. The overall length is
-/// bounded by [`Nla::emit`] through `nla_total_size`, which accounts for
-/// the trailing terminator added here.
+/// early and turn the emit/parse round trip lossy.
 ///
-/// This matches the kernel requirements for generic-netlink names:
-/// `Family::const_new` validates its name with `CStr::from_bytes_with_nul`
-/// and rejects names too long for `genl_family::name`, while
-/// `MulticastGroup::const_new` takes a `&CStr` and rejects names too long
-/// for `genl_multicast_group::name` (see `rust/kernel/net/netlink.rs`).
+/// The kernel stores both family names (`genl_family::name`) and multicast
+/// group names (`genl_multicast_group::name`) in a `char[GENL_NAMSIZ]`
+/// buffer, and validates `CTRL_ATTR_FAMILY_NAME` with `.len = GENL_NAMSIZ -
+/// 1`. Reject longer values here so the crate cannot emit a controller
+/// message the kernel would consider invalid.
 pub(crate) fn append_nl_string(
     out: &mut Vec<u8>,
     value: &str,
@@ -49,6 +51,12 @@ pub(crate) fn append_nl_string(
             EncodeErrorKind::InvalidValue,
             format!("netlink string contains an interior NUL byte: {value:?}"),
         ));
+    }
+    if value.len() >= GENL_NAMSIZ {
+        return Err(EncodeError::too_large(format!(
+            "generic netlink name is too long: {} >= {GENL_NAMSIZ}",
+            value.len()
+        )));
     }
     append_bytes(out, value.as_bytes());
     out.push(0);
@@ -393,11 +401,10 @@ mod tests {
 #[cfg(test)]
 mod string_validation_tests {
     use super::*;
-    use netlink_packet_core::NLA_MAX_VALUE_LEN;
 
     fn max_name_len() -> usize {
-        // The trailing NUL is part of the attribute value.
-        NLA_MAX_VALUE_LEN - 1
+        // GENL_NAMSIZ includes the trailing NUL.
+        GENL_NAMSIZ - 1
     }
 
     #[test]
