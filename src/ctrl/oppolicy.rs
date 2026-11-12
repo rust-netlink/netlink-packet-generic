@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 
+use super::message::GenlCtrlCmd;
 use netlink_packet_core::{
     append_bytes, append_u32, parse_u32, DecodeError, DefaultNla, Emitable,
     EncodeError, ErrorContext, Nla, NlaBuffer, NlasIterator, Parseable,
@@ -10,13 +11,13 @@ const CTRL_ATTR_POLICY_DUMP: u16 = 2;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GenlCtrlOpPolicy {
-    pub cmd: u8,
+    pub cmd: GenlCtrlCmd,
     pub policy_idx: Vec<GenlCtrlOpPolicyIndex>,
 }
 
 impl Nla for GenlCtrlOpPolicy {
     fn kind(&self) -> u16 {
-        self.cmd as u16
+        u8::from(self.cmd) as u16
     }
 
     fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
@@ -36,12 +37,14 @@ impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlOpPolicy {
             .context("failed to parse GenlCtrlOpPolicy")?;
 
         Ok(Self {
-            cmd: u8::try_from(buf.kind()).map_err(|_| {
-                DecodeError::from(format!(
-                    "invalid op policy command attribute: {}",
-                    buf.kind()
-                ))
-            })?,
+            cmd: GenlCtrlCmd::try_from(u8::try_from(buf.kind()).map_err(
+                |_| {
+                    DecodeError::from(format!(
+                        "invalid op policy command attribute: {}",
+                        buf.kind()
+                    ))
+                },
+            )?)?,
             policy_idx,
         })
     }

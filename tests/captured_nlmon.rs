@@ -190,14 +190,14 @@ fn captured_getpolicy_response() {
         attrs,
         vec![
             GenlCtrlAttr::OpPolicy(vec![GenlCtrlOpPolicy {
-                cmd: 3,
+                cmd: GenlCtrlCmd::GetFamily,
                 policy_idx: vec![
                     GenlCtrlOpPolicyIndex::Do(0),
                     GenlCtrlOpPolicyIndex::Dump(0),
                 ],
             }]),
             GenlCtrlAttr::OpPolicy(vec![GenlCtrlOpPolicy {
-                cmd: 10,
+                cmd: GenlCtrlCmd::GetPolicy,
                 policy_idx: vec![GenlCtrlOpPolicyIndex::Dump(1)],
             }]),
             GenlCtrlAttr::Policy(vec![GenlCtrlPolicySet {

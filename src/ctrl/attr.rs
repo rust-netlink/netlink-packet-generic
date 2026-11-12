@@ -196,6 +196,7 @@ mod tests {
     use crate::ctrl::policy::{
         GenlCtrlPolicy, GenlCtrlPolicyEntry, GenlCtrlPolicyType,
     };
+    use crate::ctrl::GenlCtrlCmd;
 
     // These tests compare against hard-coded little-endian wire bytes.
     #[cfg(target_endian = "little")]
@@ -369,7 +370,7 @@ mod tests {
     #[test]
     fn op_policy_round_trip() {
         let policy = GenlCtrlAttr::OpPolicy(vec![GenlCtrlOpPolicy {
-            cmd: 1,
+            cmd: GenlCtrlCmd::GetPolicy,
             policy_idx: vec![
                 GenlCtrlOpPolicyIndex::Do(2),
                 GenlCtrlOpPolicyIndex::Dump(3),
@@ -393,7 +394,7 @@ mod tests {
             }],
         }]);
         let op_policy = GenlCtrlAttr::OpPolicy(vec![GenlCtrlOpPolicy {
-            cmd: 1,
+            cmd: GenlCtrlCmd::GetPolicy,
             policy_idx: vec![],
         }]);
 
