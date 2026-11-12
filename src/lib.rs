@@ -74,7 +74,7 @@ mod traits;
 
 pub use self::ctrl::{
     GenlCtrlAttr, GenlCtrlCmd, GenlCtrlMcastGroup, GenlCtrlMessage, GenlCtrlOp,
-    GenlCtrlOpPolicy, GenlCtrlOpPolicyIndex, GenlCtrlPolicy,
+    GenlCtrlOpPolicy, GenlCtrlOpPolicyIndex, GenlCtrlOpSet, GenlCtrlPolicy,
     GenlCtrlPolicyEntry, GenlCtrlPolicySet, GenlCtrlPolicyType,
 };
 pub use self::header::GenlHeader;

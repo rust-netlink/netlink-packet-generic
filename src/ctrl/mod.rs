@@ -16,7 +16,7 @@ pub use self::attr::GenlCtrlAttr;
 pub use self::mcast::GenlCtrlMcastGroup;
 pub use self::message::{GenlCtrlCmd, GenlCtrlMessage};
 pub use self::oppolicy::{GenlCtrlOpPolicy, GenlCtrlOpPolicyIndex};
-pub use self::ops::GenlCtrlOp;
+pub use self::ops::{GenlCtrlOp, GenlCtrlOpSet};
 pub use self::policy::{
     GenlCtrlPolicy, GenlCtrlPolicyEntry, GenlCtrlPolicySet, GenlCtrlPolicyType,
 };
