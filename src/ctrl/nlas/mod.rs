@@ -521,13 +521,31 @@ mod policy_tests {
                 index: 3,
                 policies: vec![
                     NlPolicyTypeAttrs::Type(NlaType::U64),
-                    NlPolicyTypeAttrs::ByteOrder(-1),
+                    NlPolicyTypeAttrs::ByteOrder(1),
                     NlPolicyTypeAttrs::MaxValueUnsigned(42),
                 ],
             },
         });
 
         assert_eq!(round_trip(policy.clone()), policy);
+    }
+
+    #[test]
+    fn byte_order_uses_u32_wire_value() {
+        let mut bytes = Vec::new();
+        bytes.extend_from_slice(&8u16.to_ne_bytes());
+        bytes.extend_from_slice(
+            &NlPolicyTypeAttrs::ByteOrder(1).kind().to_ne_bytes(),
+        );
+        bytes.extend_from_slice(&1u32.to_ne_bytes());
+
+        let parsed = NlPolicyTypeAttrs::parse(&NlaBuffer::new(&bytes).unwrap())
+            .expect("kernel emits NL_POLICY_TYPE_ATTR_BYTE_ORDER as u32");
+        assert_eq!(parsed, NlPolicyTypeAttrs::ByteOrder(1));
+
+        let mut emitted = Vec::new();
+        parsed.emit(&mut emitted).unwrap();
+        assert_eq!(emitted, bytes);
     }
 
     #[test]

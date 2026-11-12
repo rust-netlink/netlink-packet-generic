@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 
 use netlink_packet_core::{
-    append_bytes, append_i64, append_u32, append_u64, append_u8, parse_i64,
-    parse_i8, parse_u32, parse_u64, DecodeError, DefaultNla, Emitable,
-    EncodeError, ErrorContext, Nla, NlaBuffer, NlasIterator, Parseable,
+    append_bytes, append_i64, append_u32, append_u64, parse_i64, parse_u32,
+    parse_u64, DecodeError, DefaultNla, Emitable, EncodeError, ErrorContext,
+    Nla, NlaBuffer, NlasIterator, Parseable,
 };
 use std::convert::TryFrom;
 
@@ -126,7 +126,7 @@ pub enum NlPolicyTypeAttrs {
     PolicyMaxType(u32),
     Bitfield32Mask(u32),
     Mask(u64),
-    ByteOrder(i8),
+    ByteOrder(u32),
     Unknown(DefaultNla),
 }
 
@@ -164,7 +164,7 @@ impl Nla for NlPolicyTypeAttrs {
             PolicyMaxType(v) => append_u32(out, *v),
             Bitfield32Mask(v) => append_u32(out, *v),
             Mask(v) => append_u64(out, *v),
-            ByteOrder(v) => append_u8(out, *v as u8),
+            ByteOrder(v) => append_u32(out, *v),
             Unknown(nla) => append_bytes(out, nla.value()),
         }
         Ok(())
@@ -223,7 +223,7 @@ impl<'a> Parseable<NlaBuffer<'a>> for NlPolicyTypeAttrs {
                     .context("invalid NL_POLICY_TYPE_ATTR_MASK value")?,
             ),
             NL_POLICY_TYPE_ATTR_BYTE_ORDER => Self::ByteOrder(
-                parse_i8(payload)
+                parse_u32(payload)
                     .context("invalid NL_POLICY_TYPE_ATTR_BYTE_ORDER value")?,
             ),
             _ => Self::Unknown(DefaultNla::parse(buf)?),
