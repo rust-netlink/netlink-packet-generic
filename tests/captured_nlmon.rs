@@ -17,9 +17,9 @@ use netlink_packet_core::{
 };
 use netlink_packet_generic::{
     GenlCtrlAttr, GenlCtrlCmd, GenlCtrlMcastGroup, GenlCtrlMcastGroupSet,
-    GenlCtrlMessage, GenlCtrlOp, GenlCtrlOpPolicy, GenlCtrlOpPolicyIndex,
-    GenlCtrlOpSet, GenlCtrlPolicy, GenlCtrlPolicyEntry, GenlCtrlPolicySet,
-    GenlCtrlPolicyType, GenlHeader, GenlMessage,
+    GenlCtrlMessage, GenlCtrlOp, GenlCtrlOpFlags, GenlCtrlOpPolicy,
+    GenlCtrlOpPolicyIndex, GenlCtrlOpSet, GenlCtrlPolicy, GenlCtrlPolicyEntry,
+    GenlCtrlPolicySet, GenlCtrlPolicyType, GenlHeader, GenlMessage,
 };
 
 type Message = NetlinkMessage<GenlMessage<GenlCtrlMessage>>;
@@ -86,11 +86,24 @@ fn captured_getfamily_response() {
             GenlCtrlAttr::Ops(vec![
                 GenlCtrlOpSet::new(
                     1,
-                    vec![GenlCtrlOp::Id(3), GenlCtrlOp::Flags(14)],
+                    vec![
+                        GenlCtrlOp::Id(3),
+                        GenlCtrlOp::Flags(
+                            GenlCtrlOpFlags::CmdCapDo
+                                | GenlCtrlOpFlags::CmdCapDump
+                                | GenlCtrlOpFlags::CmdCapHasPol,
+                        ),
+                    ],
                 ),
                 GenlCtrlOpSet::new(
                     2,
-                    vec![GenlCtrlOp::Id(10), GenlCtrlOp::Flags(12)],
+                    vec![
+                        GenlCtrlOp::Id(10),
+                        GenlCtrlOp::Flags(
+                            GenlCtrlOpFlags::CmdCapDump
+                                | GenlCtrlOpFlags::CmdCapHasPol,
+                        ),
+                    ],
                 ),
             ]),
             GenlCtrlAttr::McastGroups(vec![GenlCtrlMcastGroupSet::new(

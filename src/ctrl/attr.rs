@@ -177,7 +177,7 @@ mod tests {
     use super::*;
     use crate::ctrl::mcast::GenlCtrlMcastGroup;
     use crate::ctrl::oppolicy::GenlCtrlOpPolicyIndex;
-    use crate::ctrl::ops::GenlCtrlOp;
+    use crate::ctrl::ops::{GenlCtrlOp, GenlCtrlOpFlags};
     use crate::ctrl::policy::{
         GenlCtrlPolicy, GenlCtrlPolicyEntry, GenlCtrlPolicyType,
     };
@@ -281,7 +281,10 @@ mod tests {
             .expect("Failed to parse encoded McastGroups");
         let expected_attr = GenlCtrlAttr::Ops(vec![GenlCtrlOpSet::new(
             0,
-            vec![GenlCtrlOp::Id(1), GenlCtrlOp::Flags(123)],
+            vec![
+                GenlCtrlOp::Id(1),
+                GenlCtrlOp::Flags(GenlCtrlOpFlags::from_bits_retain(123)),
+            ],
         )]);
         assert_eq!(expected_attr, result_attr);
     }
@@ -292,11 +295,17 @@ mod tests {
         let ops = GenlCtrlAttr::Ops(vec![
             GenlCtrlOpSet::new(
                 1,
-                vec![GenlCtrlOp::Id(1), GenlCtrlOp::Flags(11)],
+                vec![
+                    GenlCtrlOp::Id(1),
+                    GenlCtrlOp::Flags(GenlCtrlOpFlags::from_bits_retain(11)),
+                ],
             ),
             GenlCtrlOpSet::new(
                 2,
-                vec![GenlCtrlOp::Id(3), GenlCtrlOp::Flags(33)],
+                vec![
+                    GenlCtrlOp::Id(3),
+                    GenlCtrlOp::Flags(GenlCtrlOpFlags::from_bits_retain(33)),
+                ],
             ),
         ]);
         let expected_bytes: [u8; 44] = [
