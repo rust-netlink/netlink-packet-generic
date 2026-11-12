@@ -8,7 +8,7 @@ use netlink_packet_core::{
 };
 use std::convert::{TryFrom, TryInto};
 
-use super::attr::GenlCtrlAttrs;
+use super::attr::GenlCtrlAttr;
 
 const GENL_ID_CTRL: u16 = 16;
 
@@ -93,14 +93,14 @@ impl TryFrom<u8> for GenlCtrlCmd {
 
 /// Payload of generic netlink controller
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct GenlCtrl {
+pub struct GenlCtrlMessage {
     /// Command code of this message
     pub cmd: GenlCtrlCmd,
     /// Netlink attributes in this message
-    pub nlas: Vec<GenlCtrlAttrs>,
+    pub nlas: Vec<GenlCtrlAttr>,
 }
 
-impl GenlFamily for GenlCtrl {
+impl GenlFamily for GenlCtrlMessage {
     fn family_name() -> &'static str {
         "nlctrl"
     }
@@ -118,13 +118,13 @@ impl GenlFamily for GenlCtrl {
     }
 }
 
-impl Emitable for GenlCtrl {
+impl Emitable for GenlCtrlMessage {
     fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
         self.nlas.as_slice().emit(out)
     }
 }
 
-impl ParseableParametrized<[u8], GenlHeader> for GenlCtrl {
+impl ParseableParametrized<[u8], GenlHeader> for GenlCtrlMessage {
     fn parse_with_param(
         buf: &[u8],
         header: GenlHeader,
@@ -136,9 +136,9 @@ impl ParseableParametrized<[u8], GenlHeader> for GenlCtrl {
     }
 }
 
-fn parse_ctrlnlas(buf: &[u8]) -> Result<Vec<GenlCtrlAttrs>, DecodeError> {
+fn parse_ctrlnlas(buf: &[u8]) -> Result<Vec<GenlCtrlAttr>, DecodeError> {
     let nlas = NlasIterator::new(buf)?
-        .map(|nla| GenlCtrlAttrs::parse(&nla))
+        .map(|nla| GenlCtrlAttr::parse(&nla))
         .collect::<Result<Vec<_>, _>>()
         .context("failed to parse control message attributes")?;
 
@@ -178,7 +178,7 @@ mod tests {
 
     #[test]
     fn message_with_unknown_ctrl_cmd_parses() {
-        let parsed = GenlCtrl::parse_with_param(
+        let parsed = GenlCtrlMessage::parse_with_param(
             &[],
             GenlHeader {
                 cmd: 200,

@@ -16,12 +16,13 @@ use netlink_packet_core::{
     NLM_F_MULTIPART, NLM_F_REQUEST,
 };
 use netlink_packet_generic::{
-    AttributePolicyAttr, GenlCtrl, GenlCtrlAttrs, GenlCtrlCmd, GenlHeader,
-    GenlMessage, McastGrpAttrs, NlPolicyTypeAttrs, NlaType, OpAttrs,
-    OppolicyAttr, OppolicyIndexAttr, PolicyAttr,
+    GenlCtrlAttr, GenlCtrlCmd, GenlCtrlMcastGroup, GenlCtrlMessage, GenlCtrlOp,
+    GenlCtrlOpPolicy, GenlCtrlOpPolicyIndex, GenlCtrlPolicy,
+    GenlCtrlPolicyEntry, GenlCtrlPolicySet, GenlCtrlPolicyType, GenlHeader,
+    GenlMessage,
 };
 
-type Message = NetlinkMessage<GenlMessage<GenlCtrl>>;
+type Message = NetlinkMessage<GenlMessage<GenlCtrlMessage>>;
 
 fn parse(data: &[u8]) -> (Message, usize) {
     let msg = Message::deserialize(data).unwrap();
@@ -29,7 +30,7 @@ fn parse(data: &[u8]) -> (Message, usize) {
     (msg, len)
 }
 
-fn into_genl(msg: Message) -> GenlMessage<GenlCtrl> {
+fn into_genl(msg: Message) -> GenlMessage<GenlCtrlMessage> {
     match msg.payload {
         NetlinkPayload::InnerMessage(msg) => msg,
         other => panic!("expected an inner generic netlink message: {other:?}"),
@@ -77,18 +78,18 @@ fn captured_getfamily_response() {
     assert_eq!(
         genl.payload.nlas,
         vec![
-            GenlCtrlAttrs::FamilyName("nlctrl".to_string()),
-            GenlCtrlAttrs::FamilyId(16),
-            GenlCtrlAttrs::Version(2),
-            GenlCtrlAttrs::HdrSize(0),
-            GenlCtrlAttrs::MaxAttr(0),
-            GenlCtrlAttrs::Ops(vec![
-                vec![OpAttrs::Id(3), OpAttrs::Flags(14)],
-                vec![OpAttrs::Id(10), OpAttrs::Flags(12)],
+            GenlCtrlAttr::FamilyName("nlctrl".to_string()),
+            GenlCtrlAttr::FamilyId(16),
+            GenlCtrlAttr::Version(2),
+            GenlCtrlAttr::HdrSize(0),
+            GenlCtrlAttr::MaxAttr(0),
+            GenlCtrlAttr::Ops(vec![
+                vec![GenlCtrlOp::Id(3), GenlCtrlOp::Flags(14)],
+                vec![GenlCtrlOp::Id(10), GenlCtrlOp::Flags(12)],
             ]),
-            GenlCtrlAttrs::McastGroups(vec![vec![
-                McastGrpAttrs::Id(16),
-                McastGrpAttrs::Name("notify".to_string()),
+            GenlCtrlAttr::McastGroups(vec![vec![
+                GenlCtrlMcastGroup::Id(16),
+                GenlCtrlMcastGroup::Name("notify".to_string()),
             ]]),
         ]
     );
@@ -156,7 +157,7 @@ fn captured_getpolicy_response() {
         );
         assert_eq!(genl.payload.cmd, GenlCtrlCmd::GetPolicy);
         assert_eq!(genl.payload.nlas.len(), 2);
-        assert_eq!(genl.payload.nlas[0], GenlCtrlAttrs::FamilyId(16));
+        assert_eq!(genl.payload.nlas[0], GenlCtrlAttr::FamilyId(16));
         attrs.push(genl.payload.nlas[1].clone());
 
         offset += len;
@@ -166,70 +167,70 @@ fn captured_getpolicy_response() {
     assert_eq!(
         attrs,
         vec![
-            GenlCtrlAttrs::OpPolicy(OppolicyAttr {
+            GenlCtrlAttr::OpPolicy(vec![GenlCtrlOpPolicy {
                 cmd: 3,
                 policy_idx: vec![
-                    OppolicyIndexAttr::Do(0),
-                    OppolicyIndexAttr::Dump(0),
+                    GenlCtrlOpPolicyIndex::Do(0),
+                    GenlCtrlOpPolicyIndex::Dump(0),
                 ],
-            }),
-            GenlCtrlAttrs::OpPolicy(OppolicyAttr {
+            }]),
+            GenlCtrlAttr::OpPolicy(vec![GenlCtrlOpPolicy {
                 cmd: 10,
-                policy_idx: vec![OppolicyIndexAttr::Dump(1)],
-            }),
-            GenlCtrlAttrs::Policy(PolicyAttr {
+                policy_idx: vec![GenlCtrlOpPolicyIndex::Dump(1)],
+            }]),
+            GenlCtrlAttr::Policy(vec![GenlCtrlPolicySet {
                 index: 0,
-                attr_policy: AttributePolicyAttr {
+                attrs: vec![GenlCtrlPolicyEntry {
                     index: 1,
-                    policies: vec![
-                        NlPolicyTypeAttrs::MinValueUnsigned(0),
-                        NlPolicyTypeAttrs::MaxValueUnsigned(65535),
-                        NlPolicyTypeAttrs::Type(NlaType::U16),
+                    attrs: vec![
+                        GenlCtrlPolicy::MinValueUnsigned(0),
+                        GenlCtrlPolicy::MaxValueUnsigned(65535),
+                        GenlCtrlPolicy::Type(GenlCtrlPolicyType::U16),
                     ],
-                },
-            }),
-            GenlCtrlAttrs::Policy(PolicyAttr {
+                }],
+            }]),
+            GenlCtrlAttr::Policy(vec![GenlCtrlPolicySet {
                 index: 0,
-                attr_policy: AttributePolicyAttr {
+                attrs: vec![GenlCtrlPolicyEntry {
                     index: 2,
-                    policies: vec![
-                        NlPolicyTypeAttrs::MaxLength(15),
-                        NlPolicyTypeAttrs::Type(NlaType::NulString),
+                    attrs: vec![
+                        GenlCtrlPolicy::MaxLength(15),
+                        GenlCtrlPolicy::Type(GenlCtrlPolicyType::NulString),
                     ],
-                },
-            }),
-            GenlCtrlAttrs::Policy(PolicyAttr {
+                }],
+            }]),
+            GenlCtrlAttr::Policy(vec![GenlCtrlPolicySet {
                 index: 1,
-                attr_policy: AttributePolicyAttr {
+                attrs: vec![GenlCtrlPolicyEntry {
                     index: 1,
-                    policies: vec![
-                        NlPolicyTypeAttrs::MinValueUnsigned(0),
-                        NlPolicyTypeAttrs::MaxValueUnsigned(65535),
-                        NlPolicyTypeAttrs::Type(NlaType::U16),
+                    attrs: vec![
+                        GenlCtrlPolicy::MinValueUnsigned(0),
+                        GenlCtrlPolicy::MaxValueUnsigned(65535),
+                        GenlCtrlPolicy::Type(GenlCtrlPolicyType::U16),
                     ],
-                },
-            }),
-            GenlCtrlAttrs::Policy(PolicyAttr {
+                }],
+            }]),
+            GenlCtrlAttr::Policy(vec![GenlCtrlPolicySet {
                 index: 1,
-                attr_policy: AttributePolicyAttr {
+                attrs: vec![GenlCtrlPolicyEntry {
                     index: 2,
-                    policies: vec![
-                        NlPolicyTypeAttrs::MaxLength(15),
-                        NlPolicyTypeAttrs::Type(NlaType::NulString),
+                    attrs: vec![
+                        GenlCtrlPolicy::MaxLength(15),
+                        GenlCtrlPolicy::Type(GenlCtrlPolicyType::NulString),
                     ],
-                },
-            }),
-            GenlCtrlAttrs::Policy(PolicyAttr {
+                }],
+            }]),
+            GenlCtrlAttr::Policy(vec![GenlCtrlPolicySet {
                 index: 1,
-                attr_policy: AttributePolicyAttr {
+                attrs: vec![GenlCtrlPolicyEntry {
                     index: 10,
-                    policies: vec![
-                        NlPolicyTypeAttrs::MinValueUnsigned(0),
-                        NlPolicyTypeAttrs::MaxValueUnsigned(4294967295),
-                        NlPolicyTypeAttrs::Type(NlaType::U32),
+                    attrs: vec![
+                        GenlCtrlPolicy::MinValueUnsigned(0),
+                        GenlCtrlPolicy::MaxValueUnsigned(4294967295),
+                        GenlCtrlPolicy::Type(GenlCtrlPolicyType::U32),
                     ],
-                },
-            }),
+                }],
+            }]),
         ]
     );
 }
@@ -254,7 +255,7 @@ fn captured_getfamily_request() {
     assert_eq!(genl.payload.cmd, GenlCtrlCmd::GetFamily);
     assert_eq!(
         genl.payload.nlas,
-        vec![GenlCtrlAttrs::FamilyName("nlctrl".to_string())]
+        vec![GenlCtrlAttr::FamilyName("nlctrl".to_string())]
     );
 }
 
@@ -284,6 +285,6 @@ fn captured_getpolicy_request() {
     assert_eq!(genl.payload.cmd, GenlCtrlCmd::GetPolicy);
     assert_eq!(
         genl.payload.nlas,
-        vec![GenlCtrlAttrs::FamilyName("nlctrl".to_string())]
+        vec![GenlCtrlAttr::FamilyName("nlctrl".to_string())]
     );
 }

@@ -20,10 +20,10 @@ impl Deref for OpList {
     }
 }
 
-impl TryFrom<&Vec<Vec<OpAttrs>>> for OpList {
+impl TryFrom<&Vec<Vec<GenlCtrlOp>>> for OpList {
     type Error = EncodeError;
 
-    fn try_from(ops: &Vec<Vec<OpAttrs>>) -> Result<Self, Self::Error> {
+    fn try_from(ops: &Vec<Vec<GenlCtrlOp>>) -> Result<Self, Self::Error> {
         Ok(Self(
             ops.iter()
                 .cloned()
@@ -42,7 +42,7 @@ impl TryFrom<&Vec<Vec<OpAttrs>>> for OpList {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct Op {
     pub(crate) index: u16,
-    pub(crate) nlas: Vec<OpAttrs>,
+    pub(crate) nlas: Vec<GenlCtrlOp>,
 }
 
 impl Nla for Op {
@@ -57,15 +57,15 @@ impl Nla for Op {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
-pub enum OpAttrs {
+pub enum GenlCtrlOp {
     Id(u32),
     Flags(u32),
     Unknown(DefaultNla),
 }
 
-impl Nla for OpAttrs {
+impl Nla for GenlCtrlOp {
     fn kind(&self) -> u16 {
-        use OpAttrs::*;
+        use GenlCtrlOp::*;
         match self {
             Id(_) => CTRL_ATTR_OP_ID,
             Flags(_) => CTRL_ATTR_OP_FLAGS,
@@ -74,7 +74,7 @@ impl Nla for OpAttrs {
     }
 
     fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
-        use OpAttrs::*;
+        use GenlCtrlOp::*;
         match self {
             Id(v) => append_u32(out, *v),
             Flags(v) => append_u32(out, *v),
@@ -84,7 +84,7 @@ impl Nla for OpAttrs {
     }
 }
 
-impl<'a> Parseable<NlaBuffer<'a>> for OpAttrs {
+impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlOp {
     fn parse(buf: &NlaBuffer<'a>) -> Result<Self, DecodeError> {
         let payload = buf.value();
         Ok(match buf.kind() {

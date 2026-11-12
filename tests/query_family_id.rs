@@ -4,7 +4,7 @@ use netlink_packet_core::{
     Emitable, NetlinkMessage, NetlinkPayload, NLM_F_REQUEST,
 };
 use netlink_packet_generic::{
-    GenlCtrl, GenlCtrlAttrs, GenlCtrlCmd, GenlMessage,
+    GenlCtrlAttr, GenlCtrlCmd, GenlCtrlMessage, GenlMessage,
 };
 use netlink_sys::{Socket, SocketAddr};
 
@@ -17,9 +17,9 @@ fn query_family_id() {
     socket.bind_auto().unwrap();
     socket.connect(&SocketAddr::new(0, 0)).unwrap();
 
-    let mut genlmsg = GenlMessage::from_payload(GenlCtrl {
+    let mut genlmsg = GenlMessage::from_payload(GenlCtrlMessage {
         cmd: GenlCtrlCmd::GetFamily,
-        nlas: vec![GenlCtrlAttrs::FamilyName("nlctrl".to_owned())],
+        nlas: vec![GenlCtrlAttr::FamilyName("nlctrl".to_owned())],
     });
     genlmsg.finalize();
     let mut nlmsg = NetlinkMessage::from(genlmsg);
@@ -33,7 +33,8 @@ fn query_family_id() {
 
     let (rxbuf, _addr) = socket.recv_from_full().unwrap();
     let rx_packet =
-        <NetlinkMessage<GenlMessage<GenlCtrl>>>::deserialize(&rxbuf).unwrap();
+        <NetlinkMessage<GenlMessage<GenlCtrlMessage>>>::deserialize(&rxbuf)
+            .unwrap();
 
     if let NetlinkPayload::InnerMessage(genlmsg) = rx_packet.payload {
         if GenlCtrlCmd::NewFamily == genlmsg.payload.cmd {
@@ -42,7 +43,7 @@ fn query_family_id() {
                 .nlas
                 .iter()
                 .find_map(|nla| {
-                    if let GenlCtrlAttrs::FamilyId(id) = nla {
+                    if let GenlCtrlAttr::FamilyId(id) = nla {
                         Some(*id)
                     } else {
                         None

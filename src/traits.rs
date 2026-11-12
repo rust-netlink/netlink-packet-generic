@@ -9,7 +9,7 @@
 /// `genlmsghdr`).
 ///
 /// If you are looking for an example implementation, you can refer to
-/// [`crate::GenlCtrl`].
+/// [`crate::GenlCtrlMessage`].
 pub trait GenlFamily {
     /// Return the unique family name registered in the kernel
     ///
