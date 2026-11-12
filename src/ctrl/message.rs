@@ -93,11 +93,18 @@ impl TryFrom<u8> for GenlCtrlCmd {
 
 /// Payload of generic netlink controller
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct GenlCtrlMessage {
     /// Command code of this message
     pub cmd: GenlCtrlCmd,
     /// Netlink attributes in this message
     pub nlas: Vec<GenlCtrlAttr>,
+}
+
+impl GenlCtrlMessage {
+    pub fn new(cmd: GenlCtrlCmd, nlas: Vec<GenlCtrlAttr>) -> Self {
+        Self { cmd, nlas }
+    }
 }
 
 impl GenlFamily for GenlCtrlMessage {

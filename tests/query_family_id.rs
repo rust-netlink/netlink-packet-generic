@@ -17,10 +17,10 @@ fn query_family_id() {
     socket.bind_auto().unwrap();
     socket.connect(&SocketAddr::new(0, 0)).unwrap();
 
-    let mut genlmsg = GenlMessage::from_payload(GenlCtrlMessage {
-        cmd: GenlCtrlCmd::GetFamily,
-        nlas: vec![GenlCtrlAttr::FamilyName("nlctrl".to_owned())],
-    });
+    let mut genlmsg = GenlMessage::from_payload(GenlCtrlMessage::new(
+        GenlCtrlCmd::GetFamily,
+        vec![GenlCtrlAttr::FamilyName("nlctrl".to_owned())],
+    ));
     genlmsg.finalize();
     let mut nlmsg = NetlinkMessage::from(genlmsg);
     nlmsg.header.flags = NLM_F_REQUEST;
