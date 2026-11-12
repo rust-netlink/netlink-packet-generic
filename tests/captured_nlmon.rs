@@ -16,10 +16,10 @@ use netlink_packet_core::{
     NLM_F_MULTIPART, NLM_F_REQUEST,
 };
 use netlink_packet_generic::{
-    GenlCtrlAttr, GenlCtrlCmd, GenlCtrlMcastGroup, GenlCtrlMessage, GenlCtrlOp,
-    GenlCtrlOpPolicy, GenlCtrlOpPolicyIndex, GenlCtrlOpSet, GenlCtrlPolicy,
-    GenlCtrlPolicyEntry, GenlCtrlPolicySet, GenlCtrlPolicyType, GenlHeader,
-    GenlMessage,
+    GenlCtrlAttr, GenlCtrlCmd, GenlCtrlMcastGroup, GenlCtrlMcastGroupSet,
+    GenlCtrlMessage, GenlCtrlOp, GenlCtrlOpPolicy, GenlCtrlOpPolicyIndex,
+    GenlCtrlOpSet, GenlCtrlPolicy, GenlCtrlPolicyEntry, GenlCtrlPolicySet,
+    GenlCtrlPolicyType, GenlHeader, GenlMessage,
 };
 
 type Message = NetlinkMessage<GenlMessage<GenlCtrlMessage>>;
@@ -93,10 +93,13 @@ fn captured_getfamily_response() {
                     vec![GenlCtrlOp::Id(10), GenlCtrlOp::Flags(12)],
                 ),
             ]),
-            GenlCtrlAttr::McastGroups(vec![vec![
-                GenlCtrlMcastGroup::Id(16),
-                GenlCtrlMcastGroup::Name("notify".to_string()),
-            ]]),
+            GenlCtrlAttr::McastGroups(vec![GenlCtrlMcastGroupSet::new(
+                1,
+                vec![
+                    GenlCtrlMcastGroup::Id(16),
+                    GenlCtrlMcastGroup::Name("notify".to_string()),
+                ],
+            )]),
         ]
     );
 }

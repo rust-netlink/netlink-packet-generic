@@ -13,7 +13,7 @@ mod ops;
 mod policy;
 
 pub use self::attr::GenlCtrlAttr;
-pub use self::mcast::GenlCtrlMcastGroup;
+pub use self::mcast::{GenlCtrlMcastGroup, GenlCtrlMcastGroupSet};
 pub use self::message::{GenlCtrlCmd, GenlCtrlMessage};
 pub use self::oppolicy::{GenlCtrlOpPolicy, GenlCtrlOpPolicyIndex};
 pub use self::ops::{GenlCtrlOp, GenlCtrlOpSet};

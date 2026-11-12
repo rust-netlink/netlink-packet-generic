@@ -4,10 +4,9 @@ use netlink_packet_core::{
     append_bytes, append_u16, append_u32, parse_string, parse_u16, parse_u32,
     DecodeError, DefaultNla, Emitable, EncodeError, EncodeErrorKind,
     ErrorContext, Nla, NlaBuffer, NlasIterator, Parseable, NLA_F_NESTED,
-    NLA_TYPE_MASK,
 };
 
-use super::mcast::{GenlCtrlMcastGroup, McastGroupList};
+use super::mcast::GenlCtrlMcastGroupSet;
 use super::oppolicy::GenlCtrlOpPolicy;
 use super::ops::GenlCtrlOpSet;
 use super::policy::GenlCtrlPolicySet;
@@ -58,26 +57,6 @@ pub(crate) fn append_nl_string(
     Ok(())
 }
 
-/// Convert a zero-based list index into the `u16` stored in an [`Op`] or
-/// [`McastGroup`].
-///
-/// The emitted attribute kind is `index + 1`, which must fit the type field
-/// preserved by `NLA_TYPE_MASK`. Larger lists are rejected instead of being
-/// truncated to a different attribute kind.
-pub(crate) fn checked_index(index: usize) -> Result<u16, EncodeError> {
-    let kind = index
-        .checked_add(1)
-        .and_then(|kind| u16::try_from(kind).ok())
-        .filter(|kind| *kind <= NLA_TYPE_MASK)
-        .ok_or_else(|| {
-            EncodeError::too_large(format!(
-                "netlink attribute list index {index} does not fit in the \
-                 attribute type field"
-            ))
-        })?;
-    Ok(kind - 1)
-}
-
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum GenlCtrlAttr {
@@ -87,7 +66,7 @@ pub enum GenlCtrlAttr {
     HdrSize(u32),
     MaxAttr(u32),
     Ops(Vec<GenlCtrlOpSet>),
-    McastGroups(Vec<Vec<GenlCtrlMcastGroup>>),
+    McastGroups(Vec<GenlCtrlMcastGroupSet>),
     Policy(Vec<GenlCtrlPolicySet>),
     OpPolicy(Vec<GenlCtrlOpPolicy>),
     Op(u32),
@@ -131,9 +110,7 @@ impl Nla for GenlCtrlAttr {
             HdrSize(v) => append_u32(out, *v),
             MaxAttr(v) => append_u32(out, *v),
             Ops(nlas) => nlas.as_slice().emit(out)?,
-            McastGroups(nlas) => {
-                McastGroupList::try_from(nlas)?.as_slice().emit(out)?
-            }
+            McastGroups(nlas) => nlas.as_slice().emit(out)?,
             Policy(nlas) => nlas.as_slice().emit(out)?,
             OpPolicy(nlas) => nlas.as_slice().emit(out)?,
             Op(v) => append_u32(out, *v),
@@ -176,12 +153,8 @@ impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlAttr {
             }
             CTRL_ATTR_MCAST_GROUPS => {
                 let groups = NlasIterator::new(payload)?
-                    .map(|nlas| {
-                        nlas.nlas()?
-                            .map(|nla| GenlCtrlMcastGroup::parse(&nla))
-                            .collect::<Result<Vec<_>, _>>()
-                    })
-                    .collect::<Result<Vec<Vec<_>>, _>>()
+                    .map(|nla| GenlCtrlMcastGroupSet::parse(&nla))
+                    .collect::<Result<Vec<_>, _>>()
                     .context("failed to parse CTRL_ATTR_MCAST_GROUPS")?;
                 Self::McastGroups(groups)
             }
@@ -202,6 +175,7 @@ impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlAttr {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ctrl::mcast::GenlCtrlMcastGroup;
     use crate::ctrl::oppolicy::GenlCtrlOpPolicyIndex;
     use crate::ctrl::ops::GenlCtrlOp;
     use crate::ctrl::policy::{
@@ -228,10 +202,14 @@ mod tests {
             .expect("Failed to create NlaBuffer");
         let result_attr = GenlCtrlAttr::parse(&nla_buffer)
             .expect("Failed to parse encoded McastGroups");
-        let expected_attr = GenlCtrlAttr::McastGroups(vec![vec![
-            GenlCtrlMcastGroup::Id(1),
-            GenlCtrlMcastGroup::Name("test".to_string()),
-        ]]);
+        let expected_attr =
+            GenlCtrlAttr::McastGroups(vec![GenlCtrlMcastGroupSet::new(
+                1,
+                vec![
+                    GenlCtrlMcastGroup::Id(1),
+                    GenlCtrlMcastGroup::Name("test".to_string()),
+                ],
+            )]);
         assert_eq!(expected_attr, result_attr);
     }
 
@@ -239,14 +217,20 @@ mod tests {
     #[test]
     fn mcast_groups_emit() {
         let mcast_attr = GenlCtrlAttr::McastGroups(vec![
-            vec![
-                GenlCtrlMcastGroup::Id(7),
-                GenlCtrlMcastGroup::Name("group1".to_string()),
-            ],
-            vec![
-                GenlCtrlMcastGroup::Id(8),
-                GenlCtrlMcastGroup::Name("group2".to_string()),
-            ],
+            GenlCtrlMcastGroupSet::new(
+                1,
+                vec![
+                    GenlCtrlMcastGroup::Id(7),
+                    GenlCtrlMcastGroup::Name("group1".to_string()),
+                ],
+            ),
+            GenlCtrlMcastGroupSet::new(
+                2,
+                vec![
+                    GenlCtrlMcastGroup::Id(8),
+                    GenlCtrlMcastGroup::Name("group2".to_string()),
+                ],
+            ),
         ]);
         let expected_bytes: [u8; 52] = [
             52, 0, // Netlink header length
@@ -399,6 +383,7 @@ mod tests {
 #[cfg(test)]
 mod string_validation_tests {
     use super::*;
+    use crate::ctrl::mcast::GenlCtrlMcastGroup;
 
     fn max_name_len() -> usize {
         // GENL_NAMSIZ includes the trailing NUL.
@@ -621,6 +606,7 @@ mod policy_tests {
 #[cfg(test)]
 mod unknown_attr_tests {
     use super::*;
+    use crate::ctrl::mcast::GenlCtrlMcastGroup;
     use crate::ctrl::oppolicy::GenlCtrlOpPolicyIndex;
     use crate::ctrl::ops::GenlCtrlOp;
 
@@ -674,14 +660,5 @@ mod unknown_attr_tests {
         let mut emitted = Vec::new();
         op_policy.emit(&mut emitted).unwrap();
         assert_eq!(emitted, bytes);
-    }
-
-    #[test]
-    fn checked_index_rejects_attribute_kind_overflow() {
-        assert_eq!(checked_index(0).unwrap(), 0);
-        let max_index = NLA_TYPE_MASK as usize - 1;
-        assert_eq!(checked_index(max_index).unwrap(), NLA_TYPE_MASK - 1);
-        assert!(checked_index(max_index + 1).unwrap_err().is_too_large());
-        assert!(checked_index(u16::MAX as usize).unwrap_err().is_too_large());
     }
 }

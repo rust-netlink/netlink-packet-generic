@@ -1,60 +1,48 @@
 // SPDX-License-Identifier: MIT
 
-use super::attr::{append_nl_string, checked_index};
+use super::attr::append_nl_string;
 use netlink_packet_core::{
     append_bytes, append_u32, parse_string, parse_u32, DecodeError, DefaultNla,
     Emitable, EncodeError, ErrorContext, Nla, NlaBuffer, Parseable,
 };
-use std::ops::Deref;
 
 const CTRL_ATTR_MCAST_GRP_NAME: u16 = 1;
 const CTRL_ATTR_MCAST_GRP_ID: u16 = 2;
 
-pub(crate) struct McastGroupList(Vec<McastGroup>);
-
-impl Deref for McastGroupList {
-    type Target = Vec<McastGroup>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl TryFrom<&Vec<Vec<GenlCtrlMcastGroup>>> for McastGroupList {
-    type Error = EncodeError;
-
-    fn try_from(
-        groups: &Vec<Vec<GenlCtrlMcastGroup>>,
-    ) -> Result<Self, Self::Error> {
-        Ok(Self(
-            groups
-                .iter()
-                .cloned()
-                .enumerate()
-                .map(|(index, nlas)| {
-                    Ok(McastGroup {
-                        index: checked_index(index)?,
-                        nlas,
-                    })
-                })
-                .collect::<Result<Vec<_>, EncodeError>>()?,
-        ))
-    }
-}
-
+/// A nested multicast group entry in [`super::GenlCtrlAttr::McastGroups`].
+///
+/// `index` is the attribute type used by the kernel for the nested container.
+/// The kernel numbers multicast groups starting from 1.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(crate) struct McastGroup {
-    index: u16,
-    nlas: Vec<GenlCtrlMcastGroup>,
+#[non_exhaustive]
+pub struct GenlCtrlMcastGroupSet {
+    pub index: u16,
+    pub attrs: Vec<GenlCtrlMcastGroup>,
 }
 
-impl Nla for McastGroup {
+impl GenlCtrlMcastGroupSet {
+    pub fn new(index: u16, attrs: Vec<GenlCtrlMcastGroup>) -> Self {
+        Self { index, attrs }
+    }
+}
+
+impl Nla for GenlCtrlMcastGroupSet {
     fn kind(&self) -> u16 {
-        self.index + 1
+        self.index
     }
 
     fn emit_value(&self, out: &mut Vec<u8>) -> Result<(), EncodeError> {
-        self.nlas.as_slice().emit(out)
+        self.attrs.as_slice().emit(out)
+    }
+}
+
+impl<'a> Parseable<NlaBuffer<'a>> for GenlCtrlMcastGroupSet {
+    fn parse(buf: &NlaBuffer<'a>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            index: buf.kind(),
+            attrs: Vec::<GenlCtrlMcastGroup>::parse(buf)
+                .context("failed to parse multicast group")?,
+        })
     }
 }
 
