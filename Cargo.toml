@@ -11,8 +11,8 @@ description = "generic netlink packet types"
 
 [dependencies]
 bitflags = "2"
-netlink-packet-core = { version = "1.0.0-rc1" }
+netlink-packet-core = { version = "1.0.0-rc2" }
 zerocopy = { version = "0.8", features = ["derive"] }
 
 [dev-dependencies]
-netlink-sys = { version = "1.0.0-rc1" }
+netlink-sys = { version = "1.0.0-rc2" }
